@@ -20,7 +20,7 @@ Magic_Words = [
 ]
 
 class WahooBoard:
-    def __init__(self, file_path='./counter.json'):
+    def __init__(self, file_path='./KingKooper/counter.json'):
             self.file_path = file_path
 
     def load_data(self) -> Dict[str, int]:
@@ -41,8 +41,8 @@ class WahooBoard:
 
     async def handle_message(self, message: discord.Message) -> bool:
         if self.contains_the_word(message.content):
+            self.update_counter(message.author)
             if current_user_count < 100:
-                self.update_counter(message.author)
                 response = f'{message.author} - ' + str(current_user_count) + '/100 Wahoo\'s logged'
             else:
                response = f'{message.author} - ' + str(current_user_count) + '/100 Wahoo\'s logged \n'
