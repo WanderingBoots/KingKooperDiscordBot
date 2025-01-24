@@ -51,7 +51,7 @@ class WahooBoard:
     async def handle_message(self, message: discord.Message) -> bool:
         if self.contains_the_word(message.content):
             self.update_counter(message.author)
-            if current_user_count < 5:
+            if current_user_count < 100:
                 response = '-# ' + f'{message.author} - ' + str(current_user_count) + '/100 Wahoo\'s logged'
             else:
                response = '-# ' + f'{message.author} - ' + str(current_user_count) + "/100 Wahoo\'s logged \n" + "## MARIO FORGIVENESS"
