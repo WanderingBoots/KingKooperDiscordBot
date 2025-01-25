@@ -16,6 +16,9 @@ intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 Magic_Words = [
     'wahoo',
+    'oohaw',
+    'yahoo',
+    'demerit',
 ]
 
 
@@ -36,7 +39,12 @@ class WahooBoard:
         key = str(member.guild.id) + "_" + str(member.id)
         counter_json = self.load_data()
         global current_user_count 
-        current_user_count = counter_json.get(key, 0) + WahooBoard.num_of_words_found
+        match channelstring:
+            case 'marios-jail-non-canon':
+                current_user_count = counter_json.get(key, 0) + WahooBoard.num_of_words_found
+
+            case 'mario-purgatory':
+                current_user_count = counter_json.get(key, 0) + WahooBoard.num_of_words_found    
         counter_json[key] = current_user_count 
         WahooBoard.num_of_words_found = 0
         self.save_data(counter_json)
@@ -51,34 +59,91 @@ class WahooBoard:
     async def handle_message(self, message: discord.Message) -> bool:
         if self.contains_the_word(message.content):
             self.update_counter(message.author)
-            if current_user_count < 100:
-                response = '-# ' + f'{message.author} - ' + str(current_user_count) + '/100 Wahoo\'s logged'
-            else:
-               response = '-# ' + f'{message.author} - ' + str(current_user_count) + "/100 Wahoo\'s logged \n" + "## MARIO FORGIVENESS"
-               await message.author.remove_roles(role)
-               self.reset_counter(message.author)
+            if current_user_count < 100 and current_user_count > -99:
+                response = '-# ' + f'{message.author.global_name}: ' + str(current_user_count) + '/100 Wahoo\'s logged'
+            elif current_user_count >= 100:
+                response = '-# ' + f'{message.author.global_name}: ' + str(current_user_count) + "/100 Wahoo\'s logged \n" + "## MARIO FORGIVENESS"
+                await message.author.remove_roles(role1)
+                self.reset_counter(message.author)
+            elif current_user_count <= -100:
+                response = '-# ' + f'{message.author.global_name}: ' + str(current_user_count) + "/100 Wahoo\'s logged \n" + "### BYE BYE"
+                await message.author.add_roles(role2)
+                await message.author.remove_roles(role1)
+                self.reset_counter(message.author)
             await message.channel.send(response)
         await bot.process_commands(message)
+
+
+    async def handle_message_ext(self, message: discord.Message) -> bool:
+        if self.contains_the_word(message.content):
+            self.update_counter(message.author)
+            if current_user_count < 999:
+                response = '-# ' + f'{message.author.global_name}: ' + str(current_user_count) + '/999 Yahoo\'s logged'
+            elif current_user_count >= 999:
+                response = '-# ' + f'{message.author.global_name}: ' + str(current_user_count) + "/999 Yahoo\'s logged \n" + "## MARIO CLEMENCY"
+                await message.author.add_roles(role1)
+                await message.author.remove_roles(role2)
+                self.reset_counter(message.author)
+            #elif current_user_count <= -999:
+            #    response = '-# ' + f'{message.author}: ' + str(current_user_count) + "/999 Wahoo\'s logged \n" + "# MAMMA MIA"
+            #    await message.author.add_roles(role3)
+            #    self.reset_counter(message.author)
+            await message.channel.send(response)
+        await bot.process_commands(message)        
+
     
     @staticmethod
     def contains_the_word(
             text: str
     ) -> bool:
-        for word in Magic_Words:
-            if word.lower() in text.lower():
-                WahooBoard.num_of_words_found = text.lower().count(word)
-                return True
-            else:
-                continue
-        return False
+        wordfound = False
+        WahooBoard.num_of_words_found = 0
+        for index, word in enumerate(Magic_Words):
+            match channelstring:
+                case 'marios-jail-non-canon':
+                    match index:
+                        case 0: #wahoo
+                            if word.lower() in text.lower():
+                                WahooBoard.num_of_words_found = WahooBoard.num_of_words_found + text.lower().count(word)
+                                wordfound = True
+                            else:
+                                continue
+
+                        case 1: #oohaw
+                            if word.lower() in text.lower():
+                                WahooBoard.num_of_words_found = WahooBoard.num_of_words_found - text.lower().count(word)
+                                wordfound = True
+                            else:
+                                continue
+                case 'mario-purgatory':
+                    match index:
+
+                        case 2: #yahoo
+                            if word.lower() in text.lower():
+                                WahooBoard.num_of_words_found = WahooBoard.num_of_words_found + text.lower().count(word)
+                                wordfound = True
+                            else:
+                                continue
+
+                        #case 3: #demerit
+                        #    if word.lower() in text.lower():
+                        #        WahooBoard.num_of_words_found = WahooBoard.num_of_words_found - text.lower().count(word)
+                        #        wordfound = True
+                        #    else:
+                        #        continue
+        return wordfound
+    
     
 wahooboard = WahooBoard()
     
 @bot.event
 async def on_ready():
-    global role
+    global role1
+    global role2
+    #global role3
     guild = discord.utils.get(bot.guilds, name=GUILD)
-    role = discord.utils.get(guild.roles, name='Mario Jail')
+    role1 = discord.utils.get(guild.roles, name='Mario Jail')
+    role2 = discord.utils.get(guild.roles, name='Mario Purgatory')
     print(
         f'{bot.user} is connected to the following guild:\n'
         f'{guild.name}(id: {guild.id})'
@@ -88,9 +153,10 @@ async def on_ready():
 async def on_message(message: discord.Message):
     if message.author == bot.user:
         return
-    if message.channel.name == 'marios-jail-non-cannon':
+    global channelstring
+    channelstring = message.channel.name
+    if message.channel.name == 'marios-jail-non-canon':
         await wahooboard.handle_message(message)
-
-
-
+    elif message.channel.name == 'mario-purgatory':
+        await wahooboard.handle_message_ext(message)
 bot.run(TOKEN)
