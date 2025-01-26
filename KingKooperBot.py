@@ -127,9 +127,9 @@ class WahooBoard:
             else:
                 #does not meet the requirement
                 if WahooBoard.num_of_words_found < magic_number:
-                    response = '-# ' + f'{message.author}: ERROR: INCORRECT # OF YIPEES logged \n' + '# YIPEE YEW'
+                    response = '-# ' + f'{message.author}: ERROR: INCORRECT # OF YIPEES logged \n' + '# ERRCODE: YAHAH'
                 elif WahooBoard.num_of_words_found >= magic_number + 1:
-                    response = '-# ' + f'{message.author}: ERROR: INCORRECT # OF YIPEES logged \n' + '# YIPEE YAY'
+                    response = '-# ' + f'{message.author}: ERROR: INCORRECT # OF YIPEES logged \n' + '# ERRCODE: WOHOO'
                 await message.channel.send(response) 
         await bot.process_commands(message) 
 
