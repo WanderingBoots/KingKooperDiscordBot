@@ -21,11 +21,11 @@ Magic_Words = [
     'oohay',
     'yipee',
 ]
-
+number_choices = [65, 64, 120, 121]
+magic_number = random.choice(number_choices)
 
 class WahooBoard:
     num_of_words_found = 0
-    magic_number = 64
     met_requirement = False
     def __init__(self, file_path='./KingKooper/counter.json'):
             self.file_path = file_path
@@ -102,12 +102,22 @@ class WahooBoard:
             #does meet the requirement
             if WahooBoard.met_requirement:
                 response = '-# ' + f'{message.author.global_name}: Exact Yipee\'s logged \n' + '## MARIO ABSOLVEMENT'
+                global magic_number 
+                global number_choices
+                magic_number = random.choice(number_choices)
+                print(
+                    f'{magic_number}: New Number'
+                )
                 await message.author.add_roles(role3)
+                await message.author.add_roles(role5)
                 await message.author.remove_roles(role4)
                 await message.channel.send(response)
             else:
                 #does not meet the requirement
-                response = '-# ' + f'{message.author}: ERROR: INCORRECT # OF YIPEES logged \n' + '# MAMMA MIA'
+                if WahooBoard.num_of_words_found < magic_number:
+                    response = '-# ' + f'{message.author}: ERROR: INCORRECT # OF YIPEES logged \n' + '# TOO FEW'
+                elif WahooBoard.num_of_words_found >= magic_number + 1:
+                    response = '-# ' + f'{message.author}: ERROR: INCORRECT # OF YIPEES logged \n' + '# TOO MANY'
                 await message.channel.send(response) 
         await bot.process_commands(message) 
 
@@ -127,10 +137,6 @@ class WahooBoard:
                             if word.lower() in text.lower():
                                 WahooBoard.num_of_words_found = WahooBoard.num_of_words_found + text.lower().count(word)
                                 wordfound = True
-                                if text.lower().count(word) == WahooBoard.magic_number:
-                                    WahooBoard.met_requirement = True
-                                else:
-                                    WahooBoard.met_requirement = False
                             else:
                                 continue
 
@@ -160,7 +166,17 @@ class WahooBoard:
                     match index:
                         case 4: #yipee
                             if word.lower() in text.lower():
-                                wordfound = True
+                                WahooBoard.num_of_words_found = text.lower().count(word)
+                                print(
+                                    f'# of words: {WahooBoard.num_of_words_found} '
+                                    f'Magic Number: {magic_number}'
+                                )
+                                if text.lower().count(word) == magic_number:
+                                    WahooBoard.met_requirement = True
+                                    wordfound = True
+                                else:
+                                    WahooBoard.met_requirement = False
+                                    wordfound = True
                             else:
                                 continue
 
@@ -181,14 +197,17 @@ async def on_ready():
     global role2
     global role3
     global role4
+    global role5
     guild = discord.utils.get(bot.guilds, name=GUILD)
     role1 = discord.utils.get(guild.roles, name='Mario Jail')
     role2 = discord.utils.get(guild.roles, name='Mario Purgatory')
     role3 = discord.utils.get(guild.roles, name='Starman Jr.')
     role4 = discord.utils.get(guild.roles, name='Mario Pain')
+    role5 = discord.utils.get(guild.roles, name='Mario Heaven')
     print(
         f'{bot.user} is connected to the following guild:\n'
         f'{guild.name}(id: {guild.id})'
+        f'Magic Number is: {magic_number}'
     )
  
 @bot.event
