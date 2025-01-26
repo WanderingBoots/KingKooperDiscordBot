@@ -21,7 +21,19 @@ Magic_Words = [
     'oohay',
     'yipee',
 ]
-number_choices = [65, 64, 120, 121]
+random.seed()
+number_choices = [ #must be less than 400 because discord only lets you type 2,000 characters in a single message
+    16,
+    50, 
+    64, 
+    65, 
+    70, 
+    100, 
+    120, 
+    121, 
+    150, 
+    240,
+]
 magic_number = random.choice(number_choices)
 
 class WahooBoard:
@@ -115,9 +127,9 @@ class WahooBoard:
             else:
                 #does not meet the requirement
                 if WahooBoard.num_of_words_found < magic_number:
-                    response = '-# ' + f'{message.author}: ERROR: INCORRECT # OF YIPEES logged \n' + '# TOO FEW'
+                    response = '-# ' + f'{message.author}: ERROR: INCORRECT # OF YIPEES logged \n' + '# YIPEE YEW'
                 elif WahooBoard.num_of_words_found >= magic_number + 1:
-                    response = '-# ' + f'{message.author}: ERROR: INCORRECT # OF YIPEES logged \n' + '# TOO MANY'
+                    response = '-# ' + f'{message.author}: ERROR: INCORRECT # OF YIPEES logged \n' + '# YIPEE YAY'
                 await message.channel.send(response) 
         await bot.process_commands(message) 
 
