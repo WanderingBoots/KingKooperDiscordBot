@@ -1,7 +1,8 @@
-# KingKooperBot.py
+# DiscordBotTesting.py
 import os
 import random
 import json
+import math
 
 import discord
 from dotenv import load_dotenv
@@ -48,25 +49,23 @@ mercy_choices = [
     '-# Go bug someone else',
 ]
 
-# kail_choices = [
-#     '-# Kail is smelly and wrong', 
-#     '-# Kail has pickle toes', 
-#     '-# Kail needs to do laundry and hasn\'t', 
-#     '-# Kail should know when to defer to power',
-#     '-# Kail does not appreciate the concept of Mario Jail',
-#     '-# Kail spends too much time poking around where he doesn\'t belong'
-#     '-# Kail eats ice cream with a fork'
-#     '-# Kail has gotten too comfortable questioning authority'
-#     '-# Kail has goomba breath'
-# ]
+kooper_revolution_traitors = [
+    'maxwell',
+    'boots',
+]
 
 deposeBoots = False
 bootNumber = 16
 magic_number = random.choice(number_choices)
 
-revolution_key = 'Member'
+revolution_key = 'Invokers'
 invoker = ''
 revolution_complete = False
+scorekeeping_key = 'Scorekeeping'
+user_key = 'username'
+coin_key = 'coins'
+bet_key = 'bet'
+magic_word_key = 'Magic_word_counter'
 
 games = {}
 
@@ -81,6 +80,9 @@ def calculate_hand(hand) -> int:
 
         return total    
 
+def valsort(val):
+    return val[1]
+
 class WahooBoard:
     num_of_words_found = 0
     met_requirement = False
@@ -93,61 +95,101 @@ class WahooBoard:
     
     def save_data(self, data: Dict[str, int]) -> None:
         with open(self.file_path, 'w') as counter_file_write:
-            json.dump(data, counter_file_write)
+            json.dump(data, counter_file_write, indent=4)
 
     def update_coins(self, user: discord.Member) -> int:
         #for blackjack
-        coin_key = 'Coins_' + str(user.global_name)
         counter_json = self.load_data()
-        if coin_key not in counter_json: #initializing
-            counter_json[coin_key] = [20]
-        user_coins = counter_json[coin_key]
+        user_value = user.global_name
+        id_key = str(user.guild.id) + '_' + str(user.id)
+        
+        if scorekeeping_key not in counter_json: #initializing
+            counter_json[scorekeeping_key] = {} #the value of the scorekeeping_key is a list
+        
+        if id_key not in counter_json[scorekeeping_key]: #initializing
+            counter_json[scorekeeping_key][id_key] = {}
+            counter_json[scorekeeping_key][id_key][user_key] = user_value
+            counter_json[scorekeeping_key][id_key][coin_key] = 20
+            counter_json[scorekeeping_key][id_key][bet_key] = 0
+            counter_json[scorekeeping_key][id_key][magic_word_key] = 0
+
+        user_coins = counter_json[scorekeeping_key][id_key][coin_key]
         self.save_data(counter_json)
         return user_coins
         
     def place_bet(self, user: discord.Member, bet) -> None:
-        coin_key = 'Coins_' + str(user.global_name)
-        bet_key = 'Bet_' + str(user.global_name)
+        id_key = str(user.guild.id) + '_' + str(user.id)
         counter_json = self.load_data()
-        counter_json[bet_key] = bet
-        
-        counter_json[coin_key][0] = int(counter_json[coin_key][0]) - bet
+        counter_json[scorekeeping_key][id_key][bet_key] = bet
+        counter_json[scorekeeping_key][id_key][coin_key] = int(counter_json[scorekeeping_key][id_key][coin_key]) - bet
         self.save_data(counter_json)
 
     def update_score(self, user: discord.Member, result) -> None:
-        coin_key = 'Coins_' + str(user.global_name)
-        bet_key = 'Bet_' + str(user.global_name)
+        id_key = str(user.guild.id) + '_' + str(user.id)
         counter_json = self.load_data()
         if result:
-            counter_json[coin_key][0] = counter_json[bet_key] * 2
-        counter_json[bet_key] = 0
+            counter_json[scorekeeping_key][id_key][coin_key] += math.ceil(counter_json[scorekeeping_key][id_key][bet_key] * 2.5)
+        counter_json[scorekeeping_key][id_key][bet_key] = 0
         self.save_data(counter_json)
 
     def coin_mercy(self, user: discord.Member, coins) -> None:
-        coin_key = 'Coins_' + str(user.global_name)
+        id_key = str(user.guild.id) + '_' + str(user.id)
         counter_json = self.load_data()
-        counter_json[coin_key] = [coins]
+        counter_json[scorekeeping_key][id_key][coin_key] = int(coins)
+        self.save_data(counter_json)
+
+    def high_score(self, user: discord.Member) -> list:
+        list_pairs = []
+        list_of_list_pairs = []
+        counter_json = self.load_data()
+        for key, value in counter_json.items():
+            if key == scorekeeping_key:
+                for key2, value2 in value.items():
+                    name = value2.get(user_key)
+                    coins = value2.get(coin_key)
+                    list_pairs = [name, coins]
+                    list_of_list_pairs.append(list_pairs)
+
+        #sort the list according to the value
+        list_of_list_pairs.sort(key=valsort, reverse=True)
+        return list_of_list_pairs
+
+
+    def luigi_freedom(self, user: discord.Member) -> None:
+        id_key = str(user.guild.id) + '_' + str(user.id)
+        counter_json = self.load_data()
+        counter_json[scorekeeping_key][id_key][coin_key] -= 1000
         self.save_data(counter_json)
 
 
     def update_counter(self, member: discord.Member) -> None:
-        key = str(member.guild.id) + '_' + str(member.id)
         key2 = str(member.global_name)
-         
+        user_value = member.global_name
+        id_key = str(member.guild.id) + '_' + str(member.id)
         counter_json = self.load_data()
         if revolution_key not in counter_json: 
             counter_json[revolution_key] = []
+
+        if scorekeeping_key not in counter_json: #initializing
+            counter_json[scorekeeping_key] = {} #the value of the scorekeeping_key is a list
+        
+        if id_key not in counter_json[scorekeeping_key]: #initializing
+            counter_json[scorekeeping_key][id_key] = {}
+            counter_json[scorekeeping_key][id_key][user_key] = user_value
+            counter_json[scorekeeping_key][id_key][coin_key] = 20
+            counter_json[scorekeeping_key][id_key][bet_key] = 0
+            counter_json[scorekeeping_key][id_key][magic_word_key] = 0
 
         global current_user_count 
         global first_invoke
         match channelstring:
             case 'marios-jail-non-canon':
-                current_user_count = counter_json.get(key, 0) + WahooBoard.num_of_words_found
-                counter_json[key] = current_user_count 
+                current_user_count = counter_json[scorekeeping_key][id_key].get(magic_word_key, 0) + WahooBoard.num_of_words_found
+                counter_json[scorekeeping_key][id_key][magic_word_key] = current_user_count 
 
             case 'mario-purgatory':
-                current_user_count = counter_json.get(key, 0) + WahooBoard.num_of_words_found
-                counter_json[key] = current_user_count 
+                current_user_count = counter_json[scorekeeping_key][id_key].get(magic_word_key, 0) + WahooBoard.num_of_words_found
+                counter_json[scorekeeping_key][id_key][magic_word_key] = current_user_count 
 
             case 'mario-hell':
                 if key2 not in counter_json[revolution_key]:
@@ -162,9 +204,9 @@ class WahooBoard:
         self.save_data(counter_json)
 
     def reset_counter(self, member: discord.Member) -> None:
-        key = str(member.guild.id) + "_" + str(member.id)
+        id_key = str(member.guild.id) + '_' + str(member.id)
         counter_json = self.load_data()
-        counter_json[key] = 0
+        counter_json[scorekeeping_key][id_key][magic_word_key] = 0
         self.save_data(counter_json)
 
     async def handle_message(self, message: discord.Message) -> bool:
@@ -182,13 +224,7 @@ class WahooBoard:
                 await message.author.remove_roles(role1)
                 await message.author.remove_roles(role3)
                 self.reset_counter(message.author)
-            await message.channel.send(response)
-        #elif message.author.global_name == 'Kail':
-        #    response = random.choice(kail_choices)
-        #    await message.channel.send(response)
-        #elif message.author.global_name == 'cassowary':
-        #    response = '-# broomweed is correct and kail could learn a lot from her'
-        #    await message.channel.send(response)    
+            await message.channel.send(response) 
         await bot.process_commands(message)
 
     async def handle_message_ext(self, message: discord.Message) -> bool:
@@ -215,30 +251,35 @@ class WahooBoard:
             if gimmeCoins:
                 #only do something if you have no coins
                 current_coins = wahooboard.update_coins(message.author)
-                if current_coins[0] <= 0:
-                    if random.randint(1, 100) < 36:
-                        coin_num = random.randint(5, 15)
-                        response = '-# The King is feeling generous today..., have ' + str(coin_num) + ' Mario Coins as a loan.'
+                if current_coins <= 0:
+                    if random.randint(1, 100) < 39:
+                        coin_num = random.randint(5, 150)
+                        response = '-# The King is feeling generous today... ' + str(message.author.global_name) + ', have ' + str(coin_num) + ' Mario Coins as a loan.'
                         wahooboard.coin_mercy(message.author, coin_num)
                     else:
                         response = random.choice(mercy_choices)
                 else:
-                    response = '-# Do not beg for what already have!'
+                    response = '-# Do not beg for what you already have!'
                 await message.channel.send(response)
             else:
                 #does meet the requirement
                 if WahooBoard.met_requirement:
-                    response = '-# ' + f'{message.author.global_name}: Exact Yipee\'s logged \n' + '## MARIO ABSOLVEMENT'
+                    
                     global magic_number 
                     global number_choices
                     magic_number = random.choice(number_choices)
                     print(
                         f'{magic_number}: New Number'
                     )
-                    await message.author.add_roles(role3)
-                    await message.author.add_roles(role5)
-                    await message.author.remove_roles(role4)
-                    await message.channel.send(response)
+                    if message.author.global_name.lower() != 'boots':
+                        response = '-# ' + f'{message.author.global_name}: Exact Yipee\'s logged \n' + '## MARIO ABSOLVEMENT'
+                        await message.author.add_roles(role3)
+                        await message.author.add_roles(role5)
+                        await message.author.remove_roles(role4)
+                        await message.channel.send(response)
+                    else:
+                        response = '-# ' + f'{message.author.global_name}: Exact Yipee\'s logged \n' + '## NO FREEDOM FOR BOOTS'
+                        await message.channel.send(response)
                 else:
                     if WahooBoard.num_of_words_found < magic_number:
                         response = '-# ' + f'{message.author}: ERROR: INCORRECT # OF YIPEES logged \n' + '# ERRCODE: YAHAH'
@@ -249,34 +290,39 @@ class WahooBoard:
         elif self.contains_the_word(message.content) and deposeBoots == True: #if bowser revolution was stated
             global revolution_complete
             self.update_counter(message.author)
-            if current_user_count < bootNumber:
-                if first_invoke:
-                    response = '-# ' + f'{message.author.global_name}' + ' has invoked the revolution \n' + '# ' + str(bootNumber - current_user_count) + ' INVOCATIONS REMAIN'
-                else:
-                    response = '-# ' + f'{message.author.global_name}' + ' has already invoked the revolution \n' + '# ' + str(bootNumber - current_user_count) + ' INVOCATIONS REMAIN'
-                await message.channel.send(response)    
+            if message.author.global_name.lower() in kooper_revolution_traitors:
+                response = '-# ' + f'{message.author.global_name}' + ' has betrayed the revolution for personal gain. Invocation not registered.'
+                await message.channel.send(response)  
             else:
-                boots = await guild.fetch_member(161000873680437248)
-                if revolution_complete == False:
-                    revolution_complete = True
-                    response = '-# INVOCATION: ADMINISTERED \n' + '# MARIO JUSTICE - BOOTS DEPOSED'
-                    await boots.add_roles(role1)
-                    await boots.add_roles(role3)
-                    await boots.remove_roles(role6)
-                    if message.author != boots:
-                        await message.author.add_roles(role3)
-                        await message.author.add_roles(role5)
-                        await message.author.remove_roles(role4)  
-                    for x in range (0, 12):  
-                        await message.channel.send(response)
-                        sleep(0.2)
+                if current_user_count < bootNumber:
+                    if first_invoke:
+                        response = '-# ' + f'{message.author.global_name}' + ' has invoked the revolution \n' + '# ' + str(bootNumber - current_user_count) + ' INVOCATIONS REMAIN'
+                    else:
+                        response = '-# ' + f'{message.author.global_name}' + ' has already invoked the revolution \n' + '# ' + str(bootNumber - current_user_count) + ' INVOCATIONS REMAIN'
+                    await message.channel.send(response)    
                 else:
-                    response = '# BE FREE \n' + 'https://ssl-forum-files.fobby.net/forum_attachments/0050/0973/Bowser_Revolution.png'
-                    if message.author != boots:
-                        await message.author.add_roles(role3)
-                        await message.author.add_roles(role5)
-                        await message.author.remove_roles(role4)    
-                    await message.channel.send(response)
+                    boots = await guild.fetch_member(161000873680437248)
+                    if revolution_complete == False:
+                        revolution_complete = True
+                        response = '-# INVOCATION: ADMINISTERED \n' + '# MARIO JUSTICE - BOOTS DEPOSED'
+                        await boots.add_roles(role1)
+                        await boots.add_roles(role3)
+                        await boots.remove_roles(role6)
+                        if message.author != boots:
+                            #free everyone from jail
+                            await message.author.add_roles(role3)
+                            await message.author.add_roles(role5)
+                            #await message.author.remove_roles(role4)
+                        for x in range (0, 12):  
+                            await message.channel.send(response)
+                            sleep(0.2)
+                    else:
+                        response = '# BE FREE \n' + 'https://ssl-forum-files.fobby.net/forum_attachments/0050/0973/Bowser_Revolution.png'
+                        if message.author != boots:
+                            await message.author.add_roles(role3)
+                            await message.author.add_roles(role5)
+                            #await message.author.remove_roles(role4)    
+                        await message.channel.send(response)
         await bot.process_commands(message) 
 
     
@@ -378,7 +424,15 @@ async def on_ready():
         f'{guild.name}(id: {guild.id})'
         f'Magic Number is: {magic_number}'
     )
- 
+
+
+@bot.event
+async def on_command_error(ctx: commands.Context, error):
+    if isinstance(error, commands.errors.CommandNotFound):
+        await ctx.send("Haha, I don't know that one!")
+    if isinstance(error, commands.errors.MissingRequiredArgument):
+        await ctx.send("Hey, you have to specify a number when you\'re betting!")
+
 @bot.event
 async def on_message(message: discord.Message):
     if message.author == bot.user:
@@ -419,8 +473,8 @@ async def on_message(message: discord.Message):
 
 @bot.command(name='help')
 async def _help(ctx):
-    msg_value1 = '!help \n\n !Kooper \n\n !Mario \n\n !Luigi \n\n !jail \n\n !escape \n\n !K█Pr██o█co█'
-    msg_value2 = 'Cries out for help \n\n Talk to King Kooper \n\n Talk to Mario \n\n See Luigi \n\n News about jail! \n\n How to leave peacfully! \n\n ṅ̶̩t̶̨̓r̷͙̎y̸̡͐e̴̠̒ ̴̥̈́ẽ̵̩r̷͕̍t̴̜͝ḏ̴̏c̸͕͝r̶͎͑u̵̞̿o̵̻͆p̶͙̆'
+    msg_value1 = '!help \n\n !Kooper \n\n !Mario \n\n !Luigi \n\n !jail \n\n !escape \n\n !K█Pr██oco█ \n\n !leaderboard'
+    msg_value2 = 'Cries out for help \n\n Talk to King Kooper \n\n Talk to Mario \n\n See Luigi \n\n News about jail! \n\n How to leave peacfully! \n\n ṅ̶̩t̶̨̓r̷͙̎y̸̡͐e̴̠̒ ̴̥̈́ẽ̵̩r̷͕̍t̴̜͝ḏ̴̏c̸͕͝r̶͎͑u̵̞̿o̵̻͆p̶͙̆ \n\n Rise to the top! '
 
     if ctx.channel.name == 'mario-hell':
         caller_name = ctx.author.global_name
@@ -434,6 +488,7 @@ async def _help(ctx):
         msg.add_field(name='Description', value=msg_value2, inline=True)
         msg.set_author(name='King Kooper', icon_url='https://ssl-forum-files.fobby.net/forum_attachments/0050/0976/kingkoops.png')
         await ctx.send(embed = msg)
+
 
 @bot.command(name='Kooper')
 async def _Kooper(ctx):
@@ -527,6 +582,7 @@ async def _Luigi(ctx):
             'Owie!',
             'Let\'s-a go!',
             'Luigi Time!',
+            'I work at the Casino!',
             'We\'re-a gonna be best friends!',
         ]
         msg = random.choice(message_choices)
@@ -556,7 +612,7 @@ async def _KooperJack(ctx):
     if ctx.channel.name == 'mario-hell':
         user_coins = wahooboard.update_coins(ctx.author)
         await ctx.send('https://ssl-forum-files.fobby.net/forum_attachments/0050/0979/KooperJack.jpg')
-        await ctx.send('-# Welcome to Koopers Table. You have ' + str(user_coins[0]) + ' Mario Coins!')
+        await ctx.send('-# Welcome to Koopers Table. You have ' + str(user_coins) + ' Mario Coins!')
         await ctx.send('-# Check your coins with *!coins* and place a bet with *!bet (number)*')
 
 @bot.command(name='bet')
@@ -568,10 +624,11 @@ async def _bet(ctx, bet):
             await ctx.send('-# Hey we only work with numbers here!')
             return
         
+        member = ctx.author.global_name
         user_coins = wahooboard.update_coins(ctx.author)
 
-        if user_coins[0] > 0:
-            if int_bet > user_coins[0]:
+        if user_coins > 0:
+            if int_bet > user_coins:
                 await ctx.send('-# Bahaha! You cannot bet that many coins! Try again.')
                 return
             elif int_bet <= 0:
@@ -592,21 +649,22 @@ async def _bet(ctx, bet):
                 result = True
                 wahooboard.update_score(ctx.author, result)
                 await ctx.send('https://ssl-forum-files.fobby.net/forum_attachments/0050/0985/KooperJack3.gif')
-                await ctx.send(f'-# ' + 'KooperJack! You win with ' + str(player_hand))
+                await ctx.send(f'-# ' + str(member) + ': KooperJack! You win with ' + str(player_hand))
                 return
 
             games[ctx.author.id] = (deck, player_hand, dealer_hand)
-            await ctx.send(f'-# ' + 'Nobody beats da boss!' + '\nYour hand: ' + str(player_hand) + '\nDealer\'s hand: ' + str(dealer_hand[0]) + '\n\n' + '# !hit  or  !stay?')
+            
+            await ctx.send(f'-# ' + str(member) + ': Nobody beats da boss!' + '\nYour hand: ' + str(player_hand) + '\nLuigi\'s hand: ' + str(dealer_hand[0]) + '\n\n' + '# !hit  or  !stay?')
         else:
             #call a generosity function
-            await ctx.send('-# You\'re all out of coins! Go bother King Kooper and maybe he can help you.')
+            await ctx.send('-# '  + str(member) + ': You\'re all out of coins! Go bother King Kooper and maybe he can help you.')
 
         
 @bot.command(name='hit',)
 async def _hit(ctx):
     if ctx.channel.name == 'mario-hell':
         deck, player_hand, dealer_hand = games[ctx.author.id]
-
+        member = ctx.author.global_name
         player_hand.append(deck.pop())
 
         player_total = calculate_hand(player_hand)
@@ -614,23 +672,23 @@ async def _hit(ctx):
             del games[ctx.author.id]
             result = False
             wahooboard.update_score(ctx.author, result)
-            await ctx.send('-# ' + f'You busted with {player_hand}! Too bad!')
+            await ctx.send('-# ' + str(member) + f': You busted with {player_hand}! Too bad!')
         elif player_total == 21:
             del games[ctx.author.id]
             result = True
             wahooboard.update_score(ctx.author, result)
             await ctx.send('https://ssl-forum-files.fobby.net/forum_attachments/0050/0985/KooperJack3.gif')
-            await ctx.send(f'-# You hit KooperJack with {player_hand}! You Win!')
+            await ctx.send('-# ' + str(member) + f': You hit KooperJack with {player_hand}! You Win!')
         else:
             games[ctx.author.id] = (deck, player_hand, dealer_hand)
-            await ctx.send('-# ' + f"Your hand is now {player_hand}")
+            await ctx.send('-# ' + str(member) + f": Your hand is now {player_hand}")
     
 
 @bot.command(name = 'stay')
 async def _stay(ctx):
     if ctx.channel.name == 'mario-hell':
         deck, player_hand, dealer_hand = games[ctx.author.id]
-
+        member = ctx.author.global_name
         player_total = calculate_hand(player_hand)
         dealer_total = calculate_hand(dealer_hand)
 
@@ -644,38 +702,76 @@ async def _stay(ctx):
             result = True
             wahooboard.update_score(ctx.author, result)
             await ctx.send('https://ssl-forum-files.fobby.net/forum_attachments/0050/0985/KooperJack3.gif')
-            await ctx.send('-# ' + f"Luigi busted with {dealer_hand}! You Win!")
+            await ctx.send('-# ' + str(member) + f": Luigi busted with {dealer_hand}! You Win!")
         elif dealer_total > player_total:
             result = False
             wahooboard.update_score(ctx.author, result)
-            await ctx.send('-# ' + f"Luigi wins with {dealer_hand}! Too Bad!")
+            await ctx.send('-# ' + str(member) + f": Luigi wins with {dealer_hand}! Too Bad!")
         elif dealer_total < player_total:
             result = True
             wahooboard.update_score(ctx.author, result)
             await ctx.send('https://ssl-forum-files.fobby.net/forum_attachments/0050/0985/KooperJack3.gif')
-            await ctx.send('-# ' + f"You win with {player_hand}!")
+            await ctx.send('-# ' + str(member) + f": You win with {player_hand}!")
         else:
             result = False
             wahooboard.update_score(ctx.author, result)
-            await ctx.send('-# ' + "It's a tie! Kooper declares that he wins anyway! TOO BAD")
+            await ctx.send('-# ' + str(member) + f": Luigi has {dealer_hand}. It's a tie! The house wins anyway! TOO BAD")
 
 @bot.command(name='coins')
 async def _coins(ctx): 
     if ctx.channel.name == 'mario-hell':
+        member = ctx.author.global_name
         #display your current coin count, or give out mercy coins if you have none
         user_coins = wahooboard.update_coins(ctx.author)
-        if user_coins[0] > 0:
-            await ctx.send('-# ' + 'Welcome to KooperBank! You have ' + str(user_coins[0]) + ' Mario Coins!')
+        if user_coins > 0:
+            await ctx.send('-# ' + str(member) + ': Welcome to KooperBank! You have ' + str(user_coins) + ' Mario Coins!')
         else:
-            await ctx.send('-# ' + 'Uh oh! You have ' + str(user_coins[0]) + ' Mario Coins!')
-            await ctx.send('-# Please appeal to Kooper for mercy by typing \"Oh boy do I love Kooper\", and he may take pity on you!')
+            await ctx.send('-# ' + str(member) + ': Uh oh! You have ' + str(user_coins) + ' Mario Coins!')
+            await ctx.send('-# ' + str(member) + ': Please appeal to Kooper for mercy by typing \"Oh boy do I love Kooper\", and he may take pity on you!')
 
+@bot.command(name='bail')
+async def _bail(ctx): 
+    if ctx.channel.name == 'mario-hell':
+        await ctx.send('-# ' + 'Would you like to bail yourself out with 1,000 Mario Coins? Use !LuigiFreedom to pay the King his due')
 
-@bot.event
-async def on_message_error(ctx, error):
-    if isinstance(error, commands.errors.CommandNotFound):
-        await ctx.send("Haha, I don't know that one!")
-    if isinstance(error, commands.errors.MissingRequiredArgument):
-        await ctx.send("Hey, you have to specify a number when you\'re betting!")
+@bot.command(name='LuigiFreedom')
+async def _LuigiFreedom(ctx):
+    if ctx.channel.name == 'mario-hell':
+        user_coins = wahooboard.update_coins(ctx.author)
+        if user_coins >= 1000:
+            member = ctx.author
+            wahooboard.luigi_freedom(ctx.author)
+            await ctx.send('# LUIGI FREEDOM IS HERE!')
+            await member.add_roles(role3) #starman jr.
+            await member.add_roles(role5) #mario heaven
+            await member.remove_roles(role4) #mario pain
+        else:
+            await ctx.send('-# ' + 'You do not have the Mario Coins to buy Luigi Freedom')
+
+@bot.command(name='leaderboard')
+async def _leaderboard(ctx):
+
+    #search the thing for the top 10
+    high_score_list = wahooboard.high_score(ctx.author)
+    counter = 1
+    msg_value1 = ''
+    for k, v in high_score_list:
+        msg_value1 += '#' + str(counter) + '. ' + str(k) + ': ' + str(v) + ' Mario Coins \n'
+        counter += 1
+        if counter >= 10:
+            break
+
+    msg = discord.Embed(
+        title = 'Casino Leaderboard',
+        colour = discord.Colour.dark_green()
+    )
+    msg.add_field(name='High Scores: \n', value=msg_value1, inline=True)
+    msg.set_author(name='King Kooper', icon_url='https://ssl-forum-files.fobby.net/forum_attachments/0050/0976/kingkoops.png')
+    await ctx.send(embed = msg)
+
+# @bot.command(name='loan')
+# async def _loan(ctx, user, amount, interest_rate):
+#     await ctx.send('You have loaned ' + str(user) + ': ' + amount + 'Mario Coins at ' + interest_rate + ' interest! Be sure to pay it back!' )
+#     pass
 
 bot.run(TOKEN)
