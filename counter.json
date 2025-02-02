@@ -2,9 +2,25 @@
     "Scorekeeping": {
         "593214594818899978_161000873680437248": {
             "username": "Boots",
-            "coins": 56,
+            "coins": 732,
             "bet": 0,
-            "Magic_word_counter": 0
+            "Magic_word_counter": 0,
+            "Inventory": [],
+            "Loan Owing": [],
+            "Loan Owed": [
+                {
+                    "id": "593214594818899978_226140472551145472",
+                    "username": "Deybrek",
+                    "total": 29,
+                    "Loan Issued": "2025-02-02 19:46:56.484000+00:00"
+                },
+                {
+                    "id": "593214594818899978_57579248570871808",
+                    "username": "bill",
+                    "total": 26,
+                    "Loan Issued": "2025-02-02 20:22:36.086000+00:00"
+                }
+            ]
         },
         "593214594818899978_124804479588499456": {
             "username": "Ultimate-Gamer",
@@ -14,7 +30,7 @@
         },
         "593214594818899978_1262610866432376844": {
             "username": "Xedic Zyvis",
-            "coins": 248,
+            "coins": 151,
             "bet": 0,
             "Magic_word_counter": 0
         },
@@ -56,7 +72,7 @@
         },
         "593214594818899978_328262079704465409": {
             "username": "Oilfreak",
-            "coins": 20,
+            "coins": 252,
             "bet": 0,
             "Magic_word_counter": 0
         },
@@ -74,15 +90,40 @@
         },
         "593214594818899978_226140472551145472": {
             "username": "Deybrek",
-            "coins": 123,
+            "coins": 10,
             "bet": 0,
-            "Magic_word_counter": 0
+            "Magic_word_counter": 0,
+            "Inventory": [],
+            "Loan Owing": [
+                {
+                    "id": "593214594818899978_161000873680437248",
+                    "username": "Boots",
+                    "total": 29
+                }
+            ],
+            "Loan Owed": [
+                {
+                    "id": "593214594818899978_132899865062670336",
+                    "username": "Kail",
+                    "total": 197,
+                    "Loan Issued": "2025-02-02 19:42:22.390000+00:00"
+                }
+            ]
         },
         "593214594818899978_132899865062670336": {
             "username": "Kail",
-            "coins": 20,
+            "coins": 147,
             "bet": 0,
-            "Magic_word_counter": -1
+            "Magic_word_counter": -1,
+            "Inventory": [],
+            "Loan Owing": [
+                {
+                    "id": "593214594818899978_226140472551145472",
+                    "username": "Deybrek",
+                    "total": 197
+                }
+            ],
+            "Loan Owed": []
         },
         "593214594818899978_55284957408399360": {
             "username": "Quads",
@@ -92,9 +133,18 @@
         },
         "593214594818899978_57579248570871808": {
             "username": "bill",
-            "coins": 20,
+            "coins": 32,
             "bet": 0,
-            "Magic_word_counter": 0
+            "Magic_word_counter": 0,
+            "Inventory": [],
+            "Loan Owing": [
+                {
+                    "id": "593214594818899978_161000873680437248",
+                    "username": "Boots",
+                    "total": 26
+                }
+            ],
+            "Loan Owed": []
         },
         "593214594818899978_665777625305710595": {
             "username": "Drake Inferno",
@@ -162,5 +212,17 @@
         "SurfyFrog",
         "Ultimate-Gamer",
         "Deybrek"
-    ]
+    ],
+    "Shop": {
+        "See Message History": 1000,
+        "Fishing Minigame": 2000,
+        "More Luigi Dialogue": 500,
+        "Unlock !Waluigi": 500,
+        "Unlock !Wario": 500,
+        "Unlock !Yoshi": 500,
+        "Unlock !Peach": 500,
+        "Unlock !Toad": 500,
+        "Free Boots": 5000,
+        "Big Spender Badge": 10000
+    }
 }

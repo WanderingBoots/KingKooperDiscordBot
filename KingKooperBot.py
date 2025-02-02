@@ -3,6 +3,8 @@ import os
 import random
 import json
 import math
+import asyncio
+import datetime
 
 import discord
 from dotenv import load_dotenv
@@ -54,18 +56,40 @@ kooper_revolution_traitors = [
     'boots',
 ]
 
+item_dict = {}
+item_list = [
+
+    ['See Message History', 1000],
+    ['Fishing Minigame', 2000],
+    ['More Luigi Dialogue', 500],
+    ['Unlock !Waluigi', 500],
+    ['Unlock !Wario', 500],
+    ['Unlock !Yoshi', 500],
+    ['Unlock !Peach', 500],
+    ['Unlock !Toad', 500],
+    ['Free Boots', 5000],
+    ['Big Spender Badge', 10000]
+]
+
+for i in range(len(item_list)):
+    item_dict[item_list[i][0]] = item_list[i][1]
+
+
 deposeBoots = False
 bootNumber = 16
 magic_number = random.choice(number_choices)
 
 revolution_key = 'Invokers'
-invoker = ''
 revolution_complete = False
 scorekeeping_key = 'Scorekeeping'
 user_key = 'username'
 coin_key = 'coins'
 bet_key = 'bet'
 magic_word_key = 'Magic_word_counter'
+inv_key = 'Inventory'
+store_key = 'Shop'
+loan_owing_key = 'Loan Owing'
+loan_owed_key = 'Loan Owed'
 
 games = {}
 
@@ -83,6 +107,24 @@ def calculate_hand(hand) -> int:
 def valsort(val):
     return val[1]
 
+def searchInListofDicts(value, list_of_dicts) -> bool:
+    varCheck = False
+    index = 0
+    index_snapshot = 0
+    for d in list_of_dicts:
+        for key in d:
+            if d[key] == value:
+                varCheck = True
+                index_snapshot = index
+        index += 1
+    return varCheck, index_snapshot
+
+def strfdelta(tdelta, fmt):
+    d = {"days": tdelta.days}
+    d["hours"], rem = divmod(tdelta.seconds, 3600)
+    d["minutes"], d["seconds"] = divmod(rem, 60)
+    return fmt.format(**d)
+
 class WahooBoard:
     num_of_words_found = 0
     met_requirement = False
@@ -97,25 +139,56 @@ class WahooBoard:
         with open(self.file_path, 'w') as counter_file_write:
             json.dump(data, counter_file_write, indent=4)
 
-    def update_coins(self, user: discord.Member) -> int:
-        #for blackjack
+    def initialize_values(self, user:discord.Member) -> None:
         counter_json = self.load_data()
         user_value = user.global_name
         id_key = str(user.guild.id) + '_' + str(user.id)
-        
+
         if scorekeeping_key not in counter_json: #initializing
             counter_json[scorekeeping_key] = {} #the value of the scorekeeping_key is a list
         
-        if id_key not in counter_json[scorekeeping_key]: #initializing
+        if id_key not in counter_json[scorekeeping_key]:
             counter_json[scorekeeping_key][id_key] = {}
-            counter_json[scorekeeping_key][id_key][user_key] = user_value
-            counter_json[scorekeeping_key][id_key][coin_key] = 20
-            counter_json[scorekeeping_key][id_key][bet_key] = 0
-            counter_json[scorekeeping_key][id_key][magic_word_key] = 0
 
-        user_coins = counter_json[scorekeeping_key][id_key][coin_key]
+        if user_key not in counter_json[scorekeeping_key][id_key]:
+            counter_json[scorekeeping_key][id_key][user_key] = user_value
+        
+        if coin_key not in counter_json[scorekeeping_key][id_key]:
+            counter_json[scorekeeping_key][id_key][coin_key] = 20
+        
+        if bet_key not in counter_json[scorekeeping_key][id_key]:
+            counter_json[scorekeeping_key][id_key][bet_key] = 0
+        
+        if magic_word_key not in counter_json[scorekeeping_key][id_key]:
+            counter_json[scorekeeping_key][id_key][magic_word_key] = 0
+        
+        if inv_key not in counter_json[scorekeeping_key][id_key]:
+            counter_json[scorekeeping_key][id_key][inv_key] = []
+
+        if loan_owing_key not in counter_json[scorekeeping_key][id_key]:
+            counter_json[scorekeeping_key][id_key][loan_owing_key] = []
+
+        if loan_owed_key not in counter_json[scorekeeping_key][id_key]:
+            counter_json[scorekeeping_key][id_key][loan_owed_key] = []
+
+        if revolution_key not in counter_json: 
+            counter_json[revolution_key] = []
+        
+        if store_key not in counter_json:
+            counter_json[store_key] = item_dict
+            
         self.save_data(counter_json)
-        return user_coins
+
+    def update_coins(self, user: discord.Member) -> int:
+        #for all money needs
+        id_key = str(user.guild.id) + '_' + str(user.id)
+        wahooboard.initialize_values(user)
+        counter_json = self.load_data()
+        user_coins = counter_json[scorekeeping_key][id_key][coin_key]
+        list_owing = counter_json[scorekeeping_key][id_key][loan_owing_key]
+        list_owed = counter_json[scorekeeping_key][id_key][loan_owed_key]
+        self.save_data(counter_json)
+        return user_coins, list_owing, list_owed
         
     def place_bet(self, user: discord.Member, bet) -> None:
         id_key = str(user.guild.id) + '_' + str(user.id)
@@ -138,7 +211,7 @@ class WahooBoard:
         counter_json[scorekeeping_key][id_key][coin_key] = int(coins)
         self.save_data(counter_json)
 
-    def high_score(self, user: discord.Member) -> list:
+    def high_score(self) -> list:
         list_pairs = []
         list_of_list_pairs = []
         counter_json = self.load_data()
@@ -153,7 +226,84 @@ class WahooBoard:
         #sort the list according to the value
         list_of_list_pairs.sort(key=valsort, reverse=True)
         return list_of_list_pairs
+    
+    def loan_coins(self, giver: discord.Member, receiver: discord.Member, amount:int, interest_rate, time) -> None:
+        wahooboard.initialize_values(giver) 
+        wahooboard.initialize_values(receiver) #initialize values for the giver and receiver if they haven't done so already
+        giver_id_key = str(giver.guild.id) + '_' + str(giver.id)
+        giver_username = giver.global_name
+        receiver_id_key = str(receiver.guild.id) + '_' + str(receiver.id)
+        receiver_username = receiver.global_name
+        payback = math.ceil(amount * interest_rate)
+        dict_owing = { #you owe to the giver
+            'id': giver_id_key,
+            'username': giver_username,
+            'total': amount + payback #the amount you owe to the original giver
+        }
+        dict_owed = { #what is owed to you
+            'id': receiver_id_key,
+            'username': receiver_username,
+            'total': amount + payback, #the amount you are owed from the original receiver
+            'Loan Issued': str(time)
+        }
+        counter_json = self.load_data()
+        counter_json[scorekeeping_key][giver_id_key][coin_key] -= amount
+        counter_json[scorekeeping_key][receiver_id_key][coin_key] += amount
+        
+        (user_found_owed, index_owed) = searchInListofDicts(dict_owed['id'], counter_json[scorekeeping_key][giver_id_key][loan_owed_key])
+        (user_found_owing, index_owing) = searchInListofDicts(dict_owing['id'], counter_json[scorekeeping_key][receiver_id_key][loan_owing_key])
 
+
+        if user_found_owed:
+            counter_json[scorekeeping_key][giver_id_key][loan_owed_key][index_owed]["total"] += dict_owed['total']
+            counter_json[scorekeeping_key][giver_id_key][loan_owed_key][index_owed]["Loan Issued"] = dict_owed['Loan Issued']
+        else:
+            counter_json[scorekeeping_key][giver_id_key][loan_owed_key].append(dict_owed)
+
+        if user_found_owing:
+            counter_json[scorekeeping_key][receiver_id_key][loan_owing_key][index_owing]["total"] += dict_owing['total']
+        else:
+            counter_json[scorekeeping_key][receiver_id_key][loan_owing_key].append(dict_owing)
+
+        self.save_data(counter_json)
+
+    def check_time(self, user: discord.Member, other_user, time) -> bool:
+        id_key = str(user.guild.id) + '_' + str(user.id)
+        wahooboard.initialize_values(user)
+        counter_json = self.load_data()
+        (user_found_owed, index_owed) = searchInListofDicts(other_user, counter_json[scorekeeping_key][id_key][loan_owed_key])
+        timestamp = counter_json[scorekeeping_key][id_key][loan_owed_key][index_owed]['Loan Issued']
+        time_remaining = 0
+        if timestamp != None:
+            #convert string into actual timestamp objects
+            olddt = datetime.datetime.fromisoformat(timestamp)
+            if time > olddt + datetime.timedelta(days=1):
+               enoughTimePassed = True
+            else:
+              time_remaining = olddt + datetime.timedelta(days=1) - time
+              enoughTimePassed = False
+        else:
+            enoughTimePassed = True
+            counter_json[scorekeeping_key][id_key][loan_owed_key][index_owed]['Loan Issued'] = str(time)
+
+        self.save_data(counter_json)
+        return enoughTimePassed, time_remaining
+
+    def payoff_loan(self, owed_user: discord.Member, ower_user: discord.Member, amount) -> None:
+        owed_id_key = str(owed_user.guild.id) + '_' + str(owed_user.id)
+        ower_id_key = str(ower_user.guild.id) + '_' + str(ower_user.id)
+        counter_json = self.load_data()
+
+        (user_found_ower, index_ower) = searchInListofDicts(ower_id_key, counter_json[scorekeeping_key][owed_id_key][loan_owed_key])
+        (user_found_owed, index_owed) = searchInListofDicts(owed_id_key, counter_json[scorekeeping_key][ower_id_key][loan_owed_key])
+
+        counter_json[scorekeeping_key][owed_id_key][coin_key] += amount
+        counter_json[scorekeeping_key][ower_id_key][coin_key] -= amount
+        #delete both records
+        del counter_json[scorekeeping_key][owed_id_key][loan_owed_key][index_ower]
+        del counter_json[scorekeeping_key][ower_id_key][loan_owing_key][index_owed]
+
+        self.save_data(counter_json)
 
     def luigi_freedom(self, user: discord.Member) -> None:
         id_key = str(user.guild.id) + '_' + str(user.id)
@@ -161,25 +311,11 @@ class WahooBoard:
         counter_json[scorekeeping_key][id_key][coin_key] -= 1000
         self.save_data(counter_json)
 
-
     def update_counter(self, member: discord.Member) -> None:
         key2 = str(member.global_name)
-        user_value = member.global_name
+        wahooboard.initialize_values(member)
         id_key = str(member.guild.id) + '_' + str(member.id)
         counter_json = self.load_data()
-        if revolution_key not in counter_json: 
-            counter_json[revolution_key] = []
-
-        if scorekeeping_key not in counter_json: #initializing
-            counter_json[scorekeeping_key] = {} #the value of the scorekeeping_key is a list
-        
-        if id_key not in counter_json[scorekeeping_key]: #initializing
-            counter_json[scorekeeping_key][id_key] = {}
-            counter_json[scorekeeping_key][id_key][user_key] = user_value
-            counter_json[scorekeeping_key][id_key][coin_key] = 20
-            counter_json[scorekeeping_key][id_key][bet_key] = 0
-            counter_json[scorekeeping_key][id_key][magic_word_key] = 0
-
         global current_user_count 
         global first_invoke
         match channelstring:
@@ -250,10 +386,10 @@ class WahooBoard:
         if self.contains_the_word(message.content) and deposeBoots == False:
             if gimmeCoins:
                 #only do something if you have no coins
-                current_coins = wahooboard.update_coins(message.author)
+                (current_coins, list_owing, list_owed) = wahooboard.update_coins(message.author)
                 if current_coins <= 0:
                     if random.randint(1, 100) < 39:
-                        coin_num = random.randint(5, 150)
+                        coin_num = random.randint(5, 15)
                         response = '-# The King is feeling generous today... ' + str(message.author.global_name) + ', have ' + str(coin_num) + ' Mario Coins as a loan.'
                         wahooboard.coin_mercy(message.author, coin_num)
                     else:
@@ -425,13 +561,12 @@ async def on_ready():
         f'Magic Number is: {magic_number}'
     )
 
-
 @bot.event
 async def on_command_error(ctx: commands.Context, error):
     if isinstance(error, commands.errors.CommandNotFound):
-        await ctx.send("Haha, I don't know that one!")
+        await ctx.send("-# Bahaha, I don't know that command. Try another!")
     if isinstance(error, commands.errors.MissingRequiredArgument):
-        await ctx.send("Hey, you have to specify a number when you\'re betting!")
+        await ctx.send("-# Hey, I need more info for this command!")
 
 @bot.event
 async def on_message(message: discord.Message):
@@ -445,9 +580,6 @@ async def on_message(message: discord.Message):
     elif message.channel.name == 'mario-purgatory':
         await wahooboard.handle_message_ext(message)
     elif message.channel.name == 'mario-hell':
-        if bot.user.mentioned_in(message):
-            await message.channel.send('-# Hello ' + str(message.author.global_name) + '. Are you ready for what is to come?')
-        else:
             await wahooboard.handle_message_ext_ext(message)
     elif message.channel.name == 'mario-centric-support-channel':
         if bot.user.mentioned_in(message):
@@ -466,15 +598,10 @@ async def on_message(message: discord.Message):
             ]
             await message.channel.send('-# Hello ' + str(message.author.global_name) + '. ' + random.choice(jail_messages))
 
-
-# @bot.command(name='test')
-# async def _test(ctx):
-#     await ctx.send("-# This is only a test")
-
 @bot.command(name='help')
 async def _help(ctx):
-    msg_value1 = '!help \n\n !Kooper \n\n !Mario \n\n !Luigi \n\n !jail \n\n !escape \n\n !K█Pr██oco█ \n\n !leaderboard'
-    msg_value2 = 'Cries out for help \n\n Talk to King Kooper \n\n Talk to Mario \n\n See Luigi \n\n News about jail! \n\n How to leave peacfully! \n\n ṅ̶̩t̶̨̓r̷͙̎y̸̡͐e̴̠̒ ̴̥̈́ẽ̵̩r̷͕̍t̴̜͝ḏ̴̏c̸͕͝r̶͎͑u̵̞̿o̵̻͆p̶͙̆ \n\n Rise to the top! '
+    msg_value1 = '!help \n\n !Kooper \n\n !Mario \n\n !Luigi \n\n !jail \n\n !escape \n\n !K█Pr██oco█ \n\n !leaderboard \n\n !loaninfo'
+    msg_value2 = 'Cries out for help \n\n Talk to King Kooper \n\n Talk to Mario \n\n See Luigi \n\n News about jail! \n\n How to leave peacfully! \n\n ṅ̶̩t̶̨̓r̷͙̎y̸̡͐e̴̠̒ ̴̥̈́ẽ̵̩r̷͕̍t̴̜͝ḏ̴̏c̸͕͝r̶͎͑u̵̞̿o̵̻͆p̶͙̆ \n\n Rise to the top! \n\n Get Money Quick!'
 
     if ctx.channel.name == 'mario-hell':
         caller_name = ctx.author.global_name
@@ -488,7 +615,6 @@ async def _help(ctx):
         msg.add_field(name='Description', value=msg_value2, inline=True)
         msg.set_author(name='King Kooper', icon_url='https://ssl-forum-files.fobby.net/forum_attachments/0050/0976/kingkoops.png')
         await ctx.send(embed = msg)
-
 
 @bot.command(name='Kooper')
 async def _Kooper(ctx):
@@ -610,7 +736,7 @@ async def _KRProtocol(ctx):
 @bot.command(name='KooperJack')
 async def _KooperJack(ctx):
     if ctx.channel.name == 'mario-hell':
-        user_coins = wahooboard.update_coins(ctx.author)
+        (user_coins, list_owing, list_owed) = wahooboard.update_coins(ctx.author)
         await ctx.send('https://ssl-forum-files.fobby.net/forum_attachments/0050/0979/KooperJack.jpg')
         await ctx.send('-# Welcome to Koopers Table. You have ' + str(user_coins) + ' Mario Coins!')
         await ctx.send('-# Check your coins with *!coins* and place a bet with *!bet (number)*')
@@ -621,11 +747,11 @@ async def _bet(ctx, bet):
         try:
             int_bet = int(bet)
         except ValueError:
-            await ctx.send('-# Hey we only work with numbers here!')
+            await ctx.send('-# Hey, we only work with numbers here!')
             return
         
         member = ctx.author.global_name
-        user_coins = wahooboard.update_coins(ctx.author)
+        (user_coins, list_owing, list_owed) = wahooboard.update_coins(ctx.author)
 
         if user_coins > 0:
             if int_bet > user_coins:
@@ -658,8 +784,7 @@ async def _bet(ctx, bet):
         else:
             #call a generosity function
             await ctx.send('-# '  + str(member) + ': You\'re all out of coins! Go bother King Kooper and maybe he can help you.')
-
-        
+       
 @bot.command(name='hit',)
 async def _hit(ctx):
     if ctx.channel.name == 'mario-hell':
@@ -683,8 +808,7 @@ async def _hit(ctx):
             games[ctx.author.id] = (deck, player_hand, dealer_hand)
             await ctx.send('-# ' + str(member) + f": Your hand is now {player_hand}")
     
-
-@bot.command(name = 'stay')
+@bot.command(name ='stay')
 async def _stay(ctx):
     if ctx.channel.name == 'mario-hell':
         deck, player_hand, dealer_hand = games[ctx.author.id]
@@ -722,9 +846,29 @@ async def _coins(ctx):
     if ctx.channel.name == 'mario-hell':
         member = ctx.author.global_name
         #display your current coin count, or give out mercy coins if you have none
-        user_coins = wahooboard.update_coins(ctx.author)
+        (user_coins, list_owing, list_owed) = wahooboard.update_coins(ctx.author)
         if user_coins > 0:
             await ctx.send('-# ' + str(member) + ': Welcome to KooperBank! You have ' + str(user_coins) + ' Mario Coins!')
+            if list_owing: #check if the list is empty
+                total_amount_owing = 0
+                owing_string = ''
+                for i in list_owing:
+                    for key in i:
+                        if key == 'total':
+                            total_amount_owing += i[key]
+                    owing_string += f"- You owe {i["username"]} {i["total"]} Mario Coins\n"
+                await ctx.send(f'-# {member}: **Owing:**\n{owing_string}')
+            if list_owed:
+                #loop through all entries and get total amount owed
+                total_amount_owed = 0
+                owed_string = ''
+                for i in list_owed:
+                    for key in i:
+                        if key == 'total':
+                            total_amount_owed += i[key]
+                    owed_string += f"- {i["username"]} owes you {i["total"]} Mario Coins\n"
+                await ctx.send(f'-# {member}: **Owed:**\n{owed_string}')
+            await ctx.send(f'-# {member}: In total you owe {total_amount_owing} Mario Coins, and are owed {total_amount_owed} Mario Coins!')
         else:
             await ctx.send('-# ' + str(member) + ': Uh oh! You have ' + str(user_coins) + ' Mario Coins!')
             await ctx.send('-# ' + str(member) + ': Please appeal to Kooper for mercy by typing \"Oh boy do I love Kooper\", and he may take pity on you!')
@@ -732,46 +876,170 @@ async def _coins(ctx):
 @bot.command(name='bail')
 async def _bail(ctx): 
     if ctx.channel.name == 'mario-hell':
-        await ctx.send('-# ' + 'Would you like to bail yourself out with 1,000 Mario Coins? Use !LuigiFreedom to pay the King his due')
+        if ctx.author.global_name != 'Boots':
+            await ctx.send('-# ' + 'Would you like to bail yourself out with 1,000 Mario Coins? Use !LuigiFreedom to pay the King his due')
+        else:
+            await ctx.send('-# ' + 'Would you like to bail yourself out with 10,000 Mario Coins? Use !LuigiFreedom to pay the King his due')
 
 @bot.command(name='LuigiFreedom')
 async def _LuigiFreedom(ctx):
     if ctx.channel.name == 'mario-hell':
-        user_coins = wahooboard.update_coins(ctx.author)
-        if user_coins >= 1000:
-            member = ctx.author
-            wahooboard.luigi_freedom(ctx.author)
-            await ctx.send('# LUIGI FREEDOM IS HERE!')
-            await member.add_roles(role3) #starman jr.
-            await member.add_roles(role5) #mario heaven
-            await member.remove_roles(role4) #mario pain
+        (user_coins, list_owing, list_owed) = wahooboard.update_coins(ctx.author)
+        if ctx.author.global_name != 'Boots':
+            if user_coins >= 1000:
+                member = ctx.author
+                wahooboard.luigi_freedom(ctx.author)
+                await ctx.send('# LUIGI FREEDOM IS HERE!')
+                await member.add_roles(role3) #starman jr.
+                await member.add_roles(role5) #mario heaven
+                await member.remove_roles(role4) #mario pain
+            else:
+                await ctx.send('-# ' + 'You do not have the Mario Coins to buy Luigi Freedom')
         else:
-            await ctx.send('-# ' + 'You do not have the Mario Coins to buy Luigi Freedom')
+            if user_coins >= 10000:
+                member = ctx.author
+                wahooboard.luigi_freedom(ctx.author)
+                await ctx.send('# LUIGI FREEDOM IS HERE!')
+                await member.add_roles(role3) #starman jr.
+                await member.add_roles(role5) #mario heaven
+                await member.remove_roles(role4) #mario pain
+            else:
+                await ctx.send('-# ' + 'You do not have the Mario Coins to buy Luigi Freedom, and you never will.')
 
 @bot.command(name='leaderboard')
 async def _leaderboard(ctx):
+    if ctx.channel.name == 'mario-hell':
+        #search the thing for the top 10
+        high_score_list = wahooboard.high_score(ctx.author)
+        counter = 1
+        msg_value1 = ''
+        for k, v in high_score_list:
+            msg_value1 += '#' + str(counter) + '. ' + str(k) + ': ' + str(v) + ' Mario Coins \n'
+            counter += 1
+            if counter >= 11:
+                break
 
-    #search the thing for the top 10
-    high_score_list = wahooboard.high_score(ctx.author)
-    counter = 1
-    msg_value1 = ''
-    for k, v in high_score_list:
-        msg_value1 += '#' + str(counter) + '. ' + str(k) + ': ' + str(v) + ' Mario Coins \n'
-        counter += 1
-        if counter >= 10:
-            break
+        msg = discord.Embed(
+            title = 'Casino Leaderboard',
+            colour = discord.Colour.dark_green()
+        )
+        msg.add_field(name='High Scores: \n', value=msg_value1, inline=True)
+        msg.set_author(name='King Kooper', icon_url='https://ssl-forum-files.fobby.net/forum_attachments/0050/0976/kingkoops.png')
+        await ctx.send(embed = msg)
+    
+@bot.command(name='loan')
+async def _loan(ctx, user:discord.Member, amount, interest_rate = random.randrange(10, 49)):
+    #update your coins
+    if ctx.channel.name == 'mario-hell':
+        (user_coins, list_owed, list_owing) = wahooboard.update_coins(ctx.author)
+        try:
+            interest_int = int(interest_rate)
+        except ValueError:
+            await ctx.send('-# Hey, we only work with numbers here!')
+            return
+        interest_rate = int(interest_rate) / 100
+        try:
+            amount_int = int(amount)
+        except ValueError:
+            await ctx.send('-# Hey, we only work with numbers here!')
+            return
+        
+        if user == ctx.author:
+            msg = '-# Good job, you trired to give coins to yourself. I hope you feel productive.'
+            await ctx.send(msg)
+            return
+        elif user == None:
+            msg = '-# Tell me who to give your coins to!'
+            await ctx.send(msg)
+            return
 
-    msg = discord.Embed(
-        title = 'Casino Leaderboard',
-        colour = discord.Colour.dark_green()
-    )
-    msg.add_field(name='High Scores: \n', value=msg_value1, inline=True)
-    msg.set_author(name='King Kooper', icon_url='https://ssl-forum-files.fobby.net/forum_attachments/0050/0976/kingkoops.png')
-    await ctx.send(embed = msg)
+        if amount_int > user_coins:
+            msg = f'-# {ctx.author.global_id}: You do not have enough Mario Coins to issue this loan!'
+        elif amount_int <= 0:
+            msg = f'-# {ctx.author.global_id}: Don\'t try getting smart with me buddy! Pick a better number'
+        else:
+            await ctx.send(f"-# {user.mention}: Do you accept this loan? Respond \"Yes\" or \"No\" in 10 seconds or forfeit this opportunity.")
 
-# @bot.command(name='loan')
-# async def _loan(ctx, user, amount, interest_rate):
-#     await ctx.send('You have loaned ' + str(user) + ': ' + amount + 'Mario Coins at ' + interest_rate + ' interest! Be sure to pay it back!' )
-#     pass
+            def check(m):
+                return m.author.id == user.id and m.channel == ctx.channel
+            
+            try: #waiting 10 seconds
+                response = await bot.wait_for('message', check=check, timeout=10.0) #timeout in seconds
+            except asyncio.TimeoutError: #returning after timeout
+                await ctx.send("-# Error: No response received within timeframe! Kooper says deal's off!")
+                return
+            
+            if response.content.lower() not in ("yes", "yeah"): 
+                return
+
+            wahooboard.loan_coins(ctx.author, user, amount_int, interest_rate, ctx.message.created_at)
+            msg = f'-# You have loaned {user.mention}: {amount_int} Mario Coins at {interest_rate}% interest! Be sure to pay it back!' 
+
+        await ctx.send(msg)
+
+@bot.command(name='collect')
+async def _collect(ctx, user:discord.Member):
+    if ctx.channel.name == 'mario-hell':
+        id_key = str(user.guild.id) + '_' + str(user.id)
+        (user_coins, list_owed, list_owing) = wahooboard.update_coins(ctx.author)
+        (user_coins2, list_owed2, list_owing2) = wahooboard.update_coins(user)
+        (debtfound, index) = searchInListofDicts(id_key, list_owing)
+
+        if debtfound: 
+            #check to see if it has been a day since last collect command was sent
+            (timecheck, time_remaining) = wahooboard.check_time(ctx.author, id_key, ctx.message.created_at)
+            if timecheck:
+                if user_coins2 < list_owing[index]['total']:
+                    #TODO: offer user to pay what they can, at an increased intrest rate on the balance left of 10%
+                    msg = f"-# {user.global_name} **lacks the proper funds** to pay {list_owing[index]['total']} Mario Coins to {ctx.author.global_name}!"
+                else:
+                    wahooboard.payoff_loan(ctx.author, user, list_owing[index]['total'])
+                    msg = f"-# {user.global_name}'s account has been debited {list_owing[index]['total']} Mario Coins to {ctx.author.global_name}!"
+            else:
+                #strftime doesn't work because time_remaining is a datetime.timedelta, not datetime.datetime, have to make some kind of custom function
+                msg = f'-# {ctx.author.global_name}: Not so fast! You must wait at least {strfdelta(time_remaining, "{hours} hours, {minutes} minutes, and {seconds} more seconds")} before collecting!'
+        else:
+            msg = f'-# {ctx.author.global_name}: This user does not owe you any debts!'
+        
+        await ctx.send(msg)
+
+@bot.command(name='payoff')
+async def _payoff(ctx, user:discord.Member):
+    if ctx.channel.name == 'mario-hell':
+        id_key = str(user.guild.id) + '_' + str(user.id)
+        (user_coins, list_owing, list_owed) = wahooboard.update_coins(ctx.author)
+        (debtfound, index) = searchInListofDicts(id_key, list_owing)
+        if debtfound: #check if ctx.author has any debts with the user
+            if user_coins >= list_owing[index]['total']: #check if ctx.author has enough money to pay it off
+                wahooboard.payoff_loan(user, ctx.author, list_owing[index]['total'])
+                msg = f"-# {ctx.author.global_name}: Your account has been debited {list_owing[index]['total']} Mario Coins to {user.global_name}.\n Thank you for using KooperBank!"
+            else:
+                msg = f"-# {ctx.author.global_name}: You **lack the proper funds** to pay off your debt to {user.global_name}! Oh no!"
+        else:
+            msg = f"-# {ctx.author.global_name}: You do not have any debts outstanding with {user.global_name}! Good for you!"
+        await ctx.send(msg)
+
+@bot.command(name='loaninfo')
+async def _loaninfo(ctx):
+    msg = "-# Want to loan out a few Mario Coins to a friend? Look no further! \n- Use `!loan \"@user\" \"# of coins\"` to offer a loan! \n- When you want to collect simply use `!collect \"@user\"` \n- When you want to payoff your loan, use `!payoff \"@user\"`"
+    await ctx.send(msg)
+
+async def _shop(ctx):
+    if ctx.channel.name == 'mario-hell':
+        msg_value1 = ''
+        msg_value2 = ''
+        for k, v in item_list:
+            msg_value1 += f'{k}\n'
+            msg_value2 += f'{v}\n'
+
+        msg = discord.Embed(
+            title = "Kail's Ye Olde Hell Shoppe",
+            colour = discord.Colour.dark_red()
+        )
+        msg.add_field(name='Shoppe Selection:', value=msg_value1, inline=True)
+        msg.add_field(name='Price', value=msg_value2, inline=True)
+        msg.set_author(name='Kail', icon_url='https://cdn.discordapp.com/avatars/132899865062670336/b7fbaac1c733480b5fd94084b6e028e8.webp')
+        await ctx.send(embed = msg)
+
 
 bot.run(TOKEN)
