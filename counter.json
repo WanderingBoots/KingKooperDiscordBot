@@ -2,25 +2,29 @@
     "Scorekeeping": {
         "593214594818899978_161000873680437248": {
             "username": "Boots",
-            "coins": 732,
+            "coins": 10000050,
             "bet": 0,
             "Magic_word_counter": 0,
-            "Inventory": [],
-            "Loan Owing": [],
-            "Loan Owed": [
+            "Inventory": [
+                "Winnings Multiplyer",
+                "Winnings Multiplyer+",
+                "Fishing Pond",
+                "Gambling Knife",
+                "Luigi Dialogue+",
+                "Unlock !Waluigi",
+                "Unlock !Wario",
+                "Unlock !Yoshi",
+                "Unlock !Peach",
+                "Unlock !Toad"
+            ],
+            "Loan Owing": [
                 {
-                    "id": "593214594818899978_226140472551145472",
-                    "username": "Deybrek",
-                    "total": 29,
-                    "Loan Issued": "2025-02-02 19:46:56.484000+00:00"
-                },
-                {
-                    "id": "593214594818899978_57579248570871808",
-                    "username": "bill",
-                    "total": 26,
-                    "Loan Issued": "2025-02-02 20:22:36.086000+00:00"
+                    "id": "593214594818899978_665777625305710595",
+                    "username": "Drake Inferno",
+                    "total": 12100000
                 }
-            ]
+            ],
+            "Loan Owed": []
         },
         "593214594818899978_124804479588499456": {
             "username": "Ultimate-Gamer",
@@ -36,15 +40,43 @@
         },
         "593214594818899978_159442712808914944": {
             "username": "cassowary",
-            "coins": 178,
+            "coins": 206030,
             "bet": 0,
-            "Magic_word_counter": 5
+            "Magic_word_counter": 5,
+            "Inventory": [
+                "Winnings Multiplyer",
+                "Winnings Multiplyer+",
+                "Luigi Dialogue+",
+                "Unlock !Waluigi",
+                "Unlock !Wario",
+                "Unlock !Yoshi",
+                "Unlock !Peach",
+                "Unlock !Toad",
+                "Fishing Pond",
+                "Gambling Knife"
+            ],
+            "Loan Owing": [],
+            "Loan Owed": []
         },
         "593214594818899978_176110966377807892": {
             "username": "vid",
-            "coins": 184,
+            "coins": 1205522982882230613760278528,
             "bet": 0,
-            "Magic_word_counter": 0
+            "Magic_word_counter": 0,
+            "Inventory": [
+                "Winnings Multiplyer",
+                "Winnings Multiplyer+",
+                "Fishing Pond",
+                "Luigi Dialogue+",
+                "Unlock !Waluigi",
+                "Unlock !Wario",
+                "Gambling Knife",
+                "Unlock !Yoshi",
+                "Unlock !Peach",
+                "Unlock !Toad"
+            ],
+            "Loan Owing": [],
+            "Loan Owed": []
         },
         "593214594818899978_55483280924880896": {
             "username": "Maxwell",
@@ -54,9 +86,25 @@
         },
         "593214594818899978_393185585168252940": {
             "username": "Ripjaw",
-            "coins": 1500,
+            "coins": 280498934809265,
             "bet": 0,
-            "Magic_word_counter": 0
+            "Magic_word_counter": 0,
+            "Inventory": [
+                "Winnings Multiplyer",
+                "Winnings Multiplyer+",
+                "Fishing Pond",
+                "Message History",
+                "Luigi Dialogue+",
+                "Free Boots",
+                "Unlock !Wario",
+                "Unlock !Yoshi",
+                "Unlock !Peach",
+                "Unlock !Toad",
+                "Unlock !Waluigi",
+                "Gambling Knife"
+            ],
+            "Loan Owing": [],
+            "Loan Owed": []
         },
         "593214594818899978_357596178327797761": {
             "username": "Witch's Cadence",
@@ -72,57 +120,68 @@
         },
         "593214594818899978_328262079704465409": {
             "username": "Oilfreak",
-            "coins": 252,
-            "bet": 0,
-            "Magic_word_counter": 0
-        },
-        "593214594818899978_325743992614551552": {
-            "username": "pigeom",
-            "coins": 20,
-            "bet": 0,
-            "Magic_word_counter": -2372
-        },
-        "593214594818899978_725384222755389471": {
-            "username": "moth",
-            "coins": 20,
-            "bet": 0,
-            "Magic_word_counter": 0
-        },
-        "593214594818899978_226140472551145472": {
-            "username": "Deybrek",
-            "coins": 10,
+            "coins": 5,
             "bet": 0,
             "Magic_word_counter": 0,
             "Inventory": [],
-            "Loan Owing": [
-                {
-                    "id": "593214594818899978_161000873680437248",
-                    "username": "Boots",
-                    "total": 29
-                }
+            "Loan Owing": [],
+            "Loan Owed": []
+        },
+        "593214594818899978_325743992614551552": {
+            "username": "pigeom",
+            "coins": 15,
+            "bet": 0,
+            "Magic_word_counter": -2372,
+            "Inventory": [],
+            "Loan Owing": [],
+            "Loan Owed": []
+        },
+        "593214594818899978_725384222755389471": {
+            "username": "moth",
+            "coins": 0,
+            "bet": 0,
+            "Magic_word_counter": 0,
+            "Inventory": [],
+            "Loan Owing": [],
+            "Loan Owed": []
+        },
+        "593214594818899978_226140472551145472": {
+            "username": "Deybrek",
+            "coins": 784066,
+            "bet": 500000,
+            "Magic_word_counter": 0,
+            "Inventory": [
+                "Winnings Multiplyer",
+                "Unlock !Waluigi",
+                "Winnings Multiplyer+",
+                "Fishing Pond",
+                "Gambling Knife",
+                "Unlock !Wario",
+                "Unlock !Yoshi",
+                "Unlock !Peach",
+                "Unlock !Toad"
             ],
-            "Loan Owed": [
-                {
-                    "id": "593214594818899978_132899865062670336",
-                    "username": "Kail",
-                    "total": 197,
-                    "Loan Issued": "2025-02-02 19:42:22.390000+00:00"
-                }
-            ]
+            "Loan Owing": [],
+            "Loan Owed": []
         },
         "593214594818899978_132899865062670336": {
             "username": "Kail",
-            "coins": 147,
+            "coins": 0,
             "bet": 0,
             "Magic_word_counter": -1,
-            "Inventory": [],
-            "Loan Owing": [
-                {
-                    "id": "593214594818899978_226140472551145472",
-                    "username": "Deybrek",
-                    "total": 197
-                }
+            "Inventory": [
+                "Winnings Multiplyer",
+                "Fishing Pond",
+                "Winnings Multiplyer+",
+                "Luigi Dialogue+",
+                "Unlock !Waluigi",
+                "Unlock !Wario",
+                "Unlock !Yoshi",
+                "Unlock !Peach",
+                "Unlock !Toad",
+                "Gambling Knife"
             ],
+            "Loan Owing": [],
             "Loan Owed": []
         },
         "593214594818899978_55284957408399360": {
@@ -133,24 +192,39 @@
         },
         "593214594818899978_57579248570871808": {
             "username": "bill",
-            "coins": 32,
+            "coins": 6,
             "bet": 0,
             "Magic_word_counter": 0,
             "Inventory": [],
-            "Loan Owing": [
-                {
-                    "id": "593214594818899978_161000873680437248",
-                    "username": "Boots",
-                    "total": 26
-                }
-            ],
+            "Loan Owing": [],
             "Loan Owed": []
         },
         "593214594818899978_665777625305710595": {
             "username": "Drake Inferno",
-            "coins": 20,
+            "coins": 333825166855784041734906685844879622948946858269813902,
             "bet": 0,
-            "Magic_word_counter": -1031
+            "Magic_word_counter": -1031,
+            "Inventory": [
+                "Winnings Multiplyer",
+                "Winnings Multiplyer+",
+                "Gambling Knife",
+                "Unlock !Yoshi",
+                "Unlock !Peach",
+                "Unlock !Waluigi",
+                "Luigi Dialogue+",
+                "Unlock !Wario",
+                "Unlock !Toad",
+                "Fishing Pond"
+            ],
+            "Loan Owing": [],
+            "Loan Owed": [
+                {
+                    "id": "593214594818899978_161000873680437248",
+                    "username": "Boots",
+                    "total": 12100000,
+                    "Loan Issued": "2025-02-04 19:07:12.294000+00:00"
+                }
+            ]
         },
         "593214594818899978_123884703395610625": {
             "username": "Rhyselinn",
@@ -168,7 +242,10 @@
             "username": "Broodington",
             "coins": 20,
             "bet": 0,
-            "Magic_word_counter": 0
+            "Magic_word_counter": 0,
+            "Inventory": [],
+            "Loan Owing": [],
+            "Loan Owed": []
         },
         "593214594818899978_553303834521501696": {
             "username": "SurfyFrog",
@@ -193,6 +270,15 @@
             "coins": 20,
             "bet": 0,
             "Magic_word_counter": 0
+        },
+        "593214594818899978_761709213184425995": {
+            "username": "tazmily menace",
+            "coins": 20,
+            "bet": 0,
+            "Magic_word_counter": 0,
+            "Inventory": [],
+            "Loan Owing": [],
+            "Loan Owed": []
         }
     },
     "Invokers": [
@@ -213,16 +299,78 @@
         "Ultimate-Gamer",
         "Deybrek"
     ],
-    "Shop": {
-        "See Message History": 1000,
-        "Fishing Minigame": 2000,
-        "More Luigi Dialogue": 500,
-        "Unlock !Waluigi": 500,
-        "Unlock !Wario": 500,
-        "Unlock !Yoshi": 500,
-        "Unlock !Peach": 500,
-        "Unlock !Toad": 500,
-        "Free Boots": 5000,
-        "Big Spender Badge": 10000
-    }
+    "Shop": [
+        {
+            "item number": 1,
+            "name": "Winnings Multiplyer",
+            "price": 250,
+            "bought": false
+        },
+        {
+            "item number": 2,
+            "name": "Luigi Dialogue+",
+            "price": 500,
+            "bought": false
+        },
+        {
+            "item number": 3,
+            "name": "Unlock !Waluigi",
+            "price": 500,
+            "bought": false
+        },
+        {
+            "item number": 4,
+            "name": "Unlock !Wario",
+            "price": 500,
+            "bought": false
+        },
+        {
+            "item number": 5,
+            "name": "Unlock !Yoshi",
+            "price": 500,
+            "bought": false
+        },
+        {
+            "item number": 6,
+            "name": "Unlock !Peach",
+            "price": 500,
+            "bought": false
+        },
+        {
+            "item number": 7,
+            "name": "Unlock !Toad",
+            "price": 500,
+            "bought": false
+        },
+        {
+            "item number": 8,
+            "name": "Winnings Multiplyer+",
+            "price": 1000,
+            "bought": false
+        },
+        {
+            "item number": 9,
+            "name": "Fishing Pond",
+            "price": 1000,
+            "bought": false
+        },
+        {
+            "item number": 10,
+            "name": "Message History",
+            "price": 5000,
+            "bought": true
+        },
+        {
+            "item number": 11,
+            "name": "Gambling Knife",
+            "price": 1000000,
+            "bought": false
+        },
+        {
+            "item number": 12,
+            "name": "Free Boots",
+            "price": 1000000001,
+            "bought": true
+        }
+    ]
 }

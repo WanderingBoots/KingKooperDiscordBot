@@ -56,24 +56,125 @@ kooper_revolution_traitors = [
     'boots',
 ]
 
-item_dict = {}
 item_list = [
-
-    ['See Message History', 1000],
-    ['Fishing Minigame', 2000],
-    ['More Luigi Dialogue', 500],
-    ['Unlock !Waluigi', 500],
-    ['Unlock !Wario', 500],
-    ['Unlock !Yoshi', 500],
-    ['Unlock !Peach', 500],
-    ['Unlock !Toad', 500],
-    ['Free Boots', 5000],
-    ['Big Spender Badge', 10000]
+    {
+        "item number" : 1,
+        "name": "Winnings Multiplyer",
+        "price": 250,
+        "bought": False
+    },
+    {
+        "item number" : 2,
+        "name": "Luigi Dialogue+",
+        "price": 500,
+        "bought": False
+    },
+    {
+        "item number" : 3,
+        "name": "Unlock !Waluigi",
+        "price": 500,
+        "bought": False
+    },
+    {
+        "item number" : 4,
+        "name": "Unlock !Wario",
+        "price": 500,
+        "bought": False
+    },
+    {
+        "item number" : 5,
+        "name": "Unlock !Yoshi",
+        "price": 500,
+        "bought": False
+    },
+    {
+        "item number" : 6,
+        "name": "Unlock !Peach",
+        "price": 500,
+        "bought": False
+    },
+    {
+        "item number" : 7,
+        "name": "Unlock !Toad",
+        "price": 500,
+        "bought": False
+    },
+    {
+        "item number" : 8,
+        "name": "Winnings Multiplyer+",
+        "price": 1000,
+        "bought": False
+    },
+    {
+        "item number" : 9,
+        "name": "Fishing Pond",
+        "price": 1000,
+        "bought": False
+    },
+    {
+        "item number" : 10,
+        "name": "Message History",
+        "price": 5000,
+        "bought": False
+    },
+    {
+        "item number" : 11,
+        "name": "Free Boots",
+        "price": 10001,
+        "bought": False
+    }
 ]
 
-for i in range(len(item_list)):
-    item_dict[item_list[i][0]] = item_list[i][1]
-
+fish_list = [
+    {
+        "fish name": "Cheep Cheep",
+        "rarity": "Common",
+        "value": 10,
+        "image": "https://ssl-forum-files.fobby.net/forum_attachments/0050/1059/cheepcheep.gif"
+    },
+    {
+        "fish name": "Kuribo's Shoe",
+        "rarity": "Common",
+        "value": 10,
+        "image": "https://ssl-forum-files.fobby.net/forum_attachments/0050/1051/KuriboShoe.gif"
+    },
+    {
+        "fish name": "Blooper",
+        "rarity": "Uncommon",
+        "value": 20,
+        "image": "https://ssl-forum-files.fobby.net/forum_attachments/0050/1056/Blooper.gif"
+    },
+    {
+        "fish name": "Fish Bone",
+        "rarity": "Uncommon",
+        "value": 20,
+        "image": "https://ssl-forum-files.fobby.net/forum_attachments/0050/1062/fishbone.gif"
+    },
+    {
+        "fish name": "Urchin",
+        "rarity": "Uncommon",
+        "value": 20,
+        "image": "https://ssl-forum-files.fobby.net/forum_attachments/0050/1065/Urchin.gif"
+    },
+    {
+        "fish name": "Blurp",
+        "rarity": "Rare",
+        "value": 50,
+        "image": "https://ssl-forum-files.fobby.net/forum_attachments/0050/1071/blurp.gif"
+    },
+    {
+        "fish name": "Rip Van Fish",
+        "rarity": "Rare",
+        "value": 50,
+        "image": "https://ssl-forum-files.fobby.net/forum_attachments/0050/1068/RipVanFish.gif"
+    },
+    {
+        "fish name": "Porcupuffer",
+        "rarity": "Very Rare",
+        "value": 100,
+        "image": "https://ssl-forum-files.fobby.net/forum_attachments/0050/1074/Porcupuffer.gif"
+    },
+]
 
 deposeBoots = False
 bootNumber = 16
@@ -175,11 +276,18 @@ class WahooBoard:
             counter_json[revolution_key] = []
         
         if store_key not in counter_json:
-            counter_json[store_key] = item_dict
+            counter_json[store_key] = item_list
             
         self.save_data(counter_json)
 
-    def update_coins(self, user: discord.Member) -> int:
+    def give_coins(self, user: discord.Member, amount: int):
+        id_key = str(user.guild.id) + '_' + str(user.id)
+        wahooboard.initialize_values(user)
+        counter_json = self.load_data()
+        counter_json[scorekeeping_key][id_key][coin_key] += amount
+        self.save_data(counter_json)
+
+    def update_coins(self, user: discord.Member):
         #for all money needs
         id_key = str(user.guild.id) + '_' + str(user.id)
         wahooboard.initialize_values(user)
@@ -201,7 +309,13 @@ class WahooBoard:
         id_key = str(user.guild.id) + '_' + str(user.id)
         counter_json = self.load_data()
         if result:
-            counter_json[scorekeeping_key][id_key][coin_key] += math.ceil(counter_json[scorekeeping_key][id_key][bet_key] * 2.5)
+            multiplyer = 2.5
+            #add a variable multiplier if the inventory contains certain things
+            if counter_json[store_key][0]["name"] in counter_json[scorekeeping_key][id_key][inv_key]: #Multi 1
+                multiplyer += 1.5
+            if counter_json[store_key][7]["name"] in counter_json[scorekeeping_key][id_key][inv_key]: #multi 2
+                multiplyer += 2.5
+            counter_json[scorekeeping_key][id_key][coin_key] += math.ceil(counter_json[scorekeeping_key][id_key][bet_key] * multiplyer)
         counter_json[scorekeeping_key][id_key][bet_key] = 0
         self.save_data(counter_json)
 
@@ -305,6 +419,36 @@ class WahooBoard:
 
         self.save_data(counter_json)
 
+    def get_shop_items(self) -> list:
+        counter_json = self.load_data()
+        list_of_shop_items = counter_json[store_key]
+        return list_of_shop_items
+    
+    def check_inventory(self, user: discord.Member, item_number) -> bool:
+        id_key = str(user.guild.id) + '_' + str(user.id)
+        has_item = False
+        counter_json = self.load_data()
+        if counter_json[scorekeeping_key][id_key][inv_key]: #if the list is not empty
+            if counter_json[store_key][item_number]["name"] in counter_json[scorekeeping_key][id_key][inv_key]:
+                has_item = True
+        return has_item
+            
+    def procure_item(self, user: discord.Member, item_number) -> None:
+        id_key = str(user.guild.id) + '_' + str(user.id)
+        counter_json = self.load_data()
+        counter_json[scorekeeping_key][id_key][inv_key].append(counter_json[store_key][item_number]["name"])
+        counter_json[scorekeeping_key][id_key][coin_key] -= counter_json[store_key][item_number]["price"]
+        #special case for items 9 and 11
+        if item_number == 9 or item_number == 11:
+            counter_json[store_key][item_number]["bought"] = True
+        self.save_data(counter_json)
+
+    def get_full_user_inventory(self, user: discord.Member) -> list:
+        id_key = str(user.guild.id) + '_' + str(user.id)
+        counter_json = self.load_data()
+        inv_list = counter_json[scorekeeping_key][id_key][inv_key]
+        return inv_list
+
     def luigi_freedom(self, user: discord.Member) -> None:
         id_key = str(user.guild.id) + '_' + str(user.id)
         counter_json = self.load_data()
@@ -390,7 +534,7 @@ class WahooBoard:
                 if current_coins <= 0:
                     if random.randint(1, 100) < 39:
                         coin_num = random.randint(5, 15)
-                        response = '-# The King is feeling generous today... ' + str(message.author.global_name) + ', have ' + str(coin_num) + ' Mario Coins as a loan.'
+                        response = f'-# The King is feeling generous today... {message.author.global_name} have {coin_num} Mario Coins as a loan.'
                         wahooboard.coin_mercy(message.author, coin_num)
                     else:
                         response = random.choice(mercy_choices)
@@ -460,7 +604,6 @@ class WahooBoard:
                             #await message.author.remove_roles(role4)    
                         await message.channel.send(response)
         await bot.process_commands(message) 
-
     
     @staticmethod
     def contains_the_word(
@@ -600,10 +743,11 @@ async def on_message(message: discord.Message):
 
 @bot.command(name='help')
 async def _help(ctx):
-    msg_value1 = '!help \n\n !Kooper \n\n !Mario \n\n !Luigi \n\n !jail \n\n !escape \n\n !K█Pr██oco█ \n\n !leaderboard \n\n !loaninfo'
-    msg_value2 = 'Cries out for help \n\n Talk to King Kooper \n\n Talk to Mario \n\n See Luigi \n\n News about jail! \n\n How to leave peacfully! \n\n ṅ̶̩t̶̨̓r̷͙̎y̸̡͐e̴̠̒ ̴̥̈́ẽ̵̩r̷͕̍t̴̜͝ḏ̴̏c̸͕͝r̶͎͑u̵̞̿o̵̻͆p̶͙̆ \n\n Rise to the top! \n\n Get Money Quick!'
+    msg_value1 = '!help \n\n !Kooper \n\n !Mario \n\n !Luigi \n\n !jail \n\n !escape \n\n !K█Pr██oco█ \n\n !leaderboard \n\n !loaninfo \n\n !shop \n\n !gofish \n\n !freeBoots'
+    msg_value2 = 'Cries out for help \n\n Talk to King Kooper \n\n Talk to Mario \n\n See Luigi \n\n News about jail! \n\n How to leave peacfully! \n\n ṅ̶̩t̶̨̓r̷͙̎y̸̡͐e̴̠̒ ̴̥̈́ẽ̵̩r̷͕̍t̴̜͝ḏ̴̏c̸͕͝r̶͎͑u̵̞̿o̵̻͆p̶͙̆ \n\n Rise to the top! \n\n Get Money Quick! \n\n Visit Kail\'s GrillShoppe \n\n Stop by Hell\'s only pond! \n\n Forgiveness is Divine'
 
     if ctx.channel.name == 'mario-hell':
+        wahooboard.initialize_values(ctx.author)
         caller_name = ctx.author.global_name
         fullmessage = 'Welcome ' + str(caller_name) + ', \n \n' + 'Please see the list of available commands below: \n \n'
         msg = discord.Embed(
@@ -698,24 +842,197 @@ async def _escape(ctx):
 async def _Luigi(ctx):
     if ctx.channel.name == 'mario-hell':
         caller_name = ctx.author.global_name
-        message_choices = [
-            'Hello ' + str(caller_name) + '!',
-            'Would you like to know my secret?',
-            'It\'s-a me! Luigi!',
-            'How about a game of !Ko███rJ██k?',
-            'Wa-hey!',
-            'Wa-ha!',
-            'Owie!',
-            'Let\'s-a go!',
-            'Luigi Time!',
-            'I work at the Casino!',
-            'We\'re-a gonna be best friends!',
-        ]
-        msg = random.choice(message_choices)
+        inv_list = wahooboard.get_full_user_inventory(ctx.author)
+        if "Luigi Dialogue+" in inv_list:
+            message_choices = [
+                "It's-a super Luigi Time!",
+                "I'm-a collecting Mario Coins!",
+                str(caller_name) + ", you're the best!",
+                "I'm-a so happy you stop by! Have-a 50 Mario Coins!",
+                "Stop by the KooperJack table sometime!",
+                "Has anyone seen Mr. L?",
+                "Do you want to know my favorite color?",
+                "I make-a fair wages working for Kooper!",
+            ]
+            msg = random.choice(message_choices)
+            if msg == message_choices[3]:
+                wahooboard.give_coins(ctx.author, 50)
+        else:
+            message_choices = [
+                'Hello ' + str(caller_name) + '!',
+                'Would you like to know my secret?',
+                'It\'s-a me! Luigi!',
+                'How about a game of !Ko███rJ██k?',
+                'Wa-hey!',
+                'Wa-ha!',
+                'Owie!',
+                'Let\'s-a go!',
+                'Luigi Time!',
+                'I work at the Casino!',
+                'We\'re-a gonna be best friends!',
+            ]
+            msg = random.choice(message_choices)
+
         await ctx.send('-# ' + msg + ' - Luigi Mario')
 
+@bot.command(name='Waluigi')
+async def _Waluigi(ctx):
+    if ctx.channel.name == 'mario-hell':
+        inv_list = wahooboard.get_full_user_inventory(ctx.author)
+        if "Unlock !Waluigi" in inv_list:
+            message_choices = [
+                "Wah-hah!",
+                "Weh-heh!",
+                "Wahahah Weh~",
+                "It's-a Waluigi time! Take-a 50 Wario Coins from me!", #special
+                "Waluigi is *always* the winner!",
+                "Wehah~ Waluigi number one!?",
+                "Waluigi loves money!",
+                "Please-a release Waluigi from this place!",
+            ]
+            msg = random.choice(message_choices)
+            if msg == message_choices[3]:
+                Wario_Factor = random.choice([0.5, 2])
+                amount = math.ceil(50 * Wario_Factor)
+                wahooboard.give_coins(ctx.author, amount)
+            await ctx.send('-# ' + msg + ' - Waluigi')
+        else:
+            msg = "-# You have not purchased this wretched Mario character."
+            await ctx.send(msg)
+
+@bot.command(name='Wario')
+async def _Wario(ctx):
+    if ctx.channel.name == 'mario-hell':
+        inv_list = wahooboard.get_full_user_inventory(ctx.author)
+        if "Unlock !Wario" in inv_list:
+            message_choices = [
+                "WAHAHAHAH!",
+                "You picked-a good choice!",
+                "Take-a me to the KooperJack table!",
+                "It's-a Wario time! Take-a 50 Wario Coins from me!", #special
+                "Wario's gonna WIN!",
+                "Wario number one! The best!",
+                "Waluigi owes-a me 1,000 Wario Coins!",
+                "You cannot-a trust that Mario brother!",
+            ]
+            msg = random.choice(message_choices)
+            if msg == message_choices[3]:
+                Wario_Factor = random.choice([0.5, 2])
+                amount = math.ceil(50 * Wario_Factor)
+                wahooboard.give_coins(ctx.author, amount)
+            await ctx.send('-# ' + msg + ' - Wario')
+        else:
+            msg = "-# You have not purchased this wretched Mario character."
+            await ctx.send(msg)
+
+@bot.command(name='Yoshi')
+async def _Yoshi(ctx):
+    if ctx.channel.name == 'mario-hell':
+        inv_list = wahooboard.get_full_user_inventory(ctx.author)
+        if "Unlock !Yoshi" in inv_list:
+            message_choices = [
+                "*Yoshi sounds*",
+                "*Yoshi sounds*",
+                "*Yoshi sounds*",
+                "*Yoshi gives you 50 Yoshi Eggs, with a value of 1 Mario coin each!*", #special
+                "*Nervous Yoshi sounds*",
+                "*Joyful Yoshi sounds*",
+                "*Excited Yoshi sounds*",
+                "*Small Yoshi sounds*",
+            ]
+            msg = random.choice(message_choices)
+            if msg == message_choices[3]:
+                amount = 50
+                wahooboard.give_coins(ctx.author, amount)
+            await ctx.send('-# ' + msg + ' - Yoshi')
+        else:
+            msg = "-# You have not purchased this beloved Mario character."
+            await ctx.send(msg)
+
+@bot.command(name='Peach')
+async def _Peach(ctx):
+    if ctx.channel.name == 'mario-hell':
+        caller_name = ctx.author.global_name
+        inv_list = wahooboard.get_full_user_inventory(ctx.author)
+        if "Unlock !Peach" in inv_list:
+            message_choices = [
+                "Thank you " + str(caller_name) +"!",
+                "Thank you. But our Princess is in another castle!...Just kidding! Ha ha ha! Bye bye.",
+                "Listen, everybody, let's bake a delicious cake...for " + str(caller_name) +"!",
+                "Kooper trapped me here, so have 50 Mario coins from my royal handbag", #special
+                "Let's go!",
+                "How important it is to see different things and talk with different people, that no matter what kingdom you're in, people smile with the same little sparkle!",
+                "Ta-taa",
+                "I can't believe he employed Luigi!",
+            ]
+            msg = random.choice(message_choices)
+            if msg == message_choices[3]:
+                amount = 50
+                wahooboard.give_coins(ctx.author, amount)
+            await ctx.send('-# ' + msg + ' - Princess Peach')
+        else:
+            msg = "-# You have not purchased this beloved Mario character."
+            await ctx.send(msg)
+
+@bot.command(name='Toad')
+async def _Toad(ctx):
+    if ctx.channel.name == 'mario-hell':
+        caller_name = ctx.author.global_name
+        inv_list = wahooboard.get_full_user_inventory(ctx.author)
+        if "Unlock !Toad" in inv_list:
+            message_choices = [
+                "I'm the best!",
+                "I'm the best!",
+                "I'm the best!",
+                "I'm the best!!", #special
+                "I'm the best!",
+                "I'm the best!",
+                "I'm the best!",
+                "I'm the best!",
+            ]
+            msg = random.choice(message_choices)
+            await ctx.send('-# ' + msg + ' - Hell Toad')
+            if msg == message_choices[3]:
+                amount = 50
+                wahooboard.give_coins(ctx.author, amount)
+                await ctx.send('-# The Hell Toad slides a few Mario Coins into your pocket')
+            
+        else:
+            msg = "-# You have not purchased this beloved Mario character."
+            await ctx.send(msg)
+
+@bot.command(name='gofish')
+async def _gofish(ctx):
+    if ctx.channel.name == 'mario-hell':
+        wahooboard.initialize_values(ctx.author)
+        inv_list = wahooboard.get_full_user_inventory(ctx.author)
+        if "Fishing Pond" in inv_list:
+            nocatch = False
+            fish_choice_percent = random.randrange(0, 100)
+            if fish_choice_percent < 10:
+                nocatch = True
+            elif fish_choice_percent >= 10 and fish_choice_percent < 80:
+                fish_choice = random.choice([0, 1])
+            elif fish_choice_percent >= 80 and fish_choice_percent < 95:
+                fish_choice = random.choice([2, 3, 4])
+            elif fish_choice_percent <= 95:
+                fish_choice = random.choice([5, 6])
+            else:
+                fish_choice = 7
+            if not nocatch:
+                #update the coines
+                wahooboard.give_coins(ctx.author, fish_list[fish_choice]["value"])
+                await ctx.send(f"{fish_list[fish_choice]["image"]}")
+                msg = f"-# {ctx.author.global_name}: You caught a {fish_list[fish_choice]["fish name"]}! That's worth {fish_list[fish_choice]["value"]} Mario Coins!"
+                #Cast a line into the pond, return with a fish
+            else:
+                msg = f"-# {ctx.author.global_name}: Too bad, you didn't catch anything! Feel free to try again!"
+        else:
+            msg = "-# You have not purchased access to the Fishing Pond."
+        await ctx.send(msg)
+        
 @bot.command(name='secret')
-async def _secret(ctx):
+async def _secret(ctx):#cast
     if ctx.channel.name == 'mario-hell':
         caller_name = ctx.author.global_name
         message_choices = [
@@ -738,7 +1055,7 @@ async def _KooperJack(ctx):
     if ctx.channel.name == 'mario-hell':
         (user_coins, list_owing, list_owed) = wahooboard.update_coins(ctx.author)
         await ctx.send('https://ssl-forum-files.fobby.net/forum_attachments/0050/0979/KooperJack.jpg')
-        await ctx.send('-# Welcome to Koopers Table. You have ' + str(user_coins) + ' Mario Coins!')
+        await ctx.send(f"-# Welcome to Kooper's Table. You have {user_coins:,} Mario Coins!")
         await ctx.send('-# Check your coins with *!coins* and place a bet with *!bet (number)*')
 
 @bot.command(name='bet')
@@ -775,15 +1092,15 @@ async def _bet(ctx, bet):
                 result = True
                 wahooboard.update_score(ctx.author, result)
                 await ctx.send('https://ssl-forum-files.fobby.net/forum_attachments/0050/0985/KooperJack3.gif')
-                await ctx.send(f'-# ' + str(member) + ': KooperJack! You win with ' + str(player_hand))
+                await ctx.send(f"-# {member}: KooperJack! You win with {player_hand}")
                 return
 
             games[ctx.author.id] = (deck, player_hand, dealer_hand)
             
-            await ctx.send(f'-# ' + str(member) + ': Nobody beats da boss!' + '\nYour hand: ' + str(player_hand) + '\nLuigi\'s hand: ' + str(dealer_hand[0]) + '\n\n' + '# !hit  or  !stay?')
+            await ctx.send(f"-# {member}: Nobody beats da boss!\nYour hand: {player_hand}\nLuigi's hand: {dealer_hand[0]}\n\n# !hit  or  !stay?")
         else:
             #call a generosity function
-            await ctx.send('-# '  + str(member) + ': You\'re all out of coins! Go bother King Kooper and maybe he can help you.')
+            await ctx.send(f"-# {member}: You're all out of coins! Go bother King Kooper and maybe he can help you.")
        
 @bot.command(name='hit',)
 async def _hit(ctx):
@@ -803,7 +1120,7 @@ async def _hit(ctx):
             result = True
             wahooboard.update_score(ctx.author, result)
             await ctx.send('https://ssl-forum-files.fobby.net/forum_attachments/0050/0985/KooperJack3.gif')
-            await ctx.send('-# ' + str(member) + f': You hit KooperJack with {player_hand}! You Win!')
+            await ctx.send(f"-# {member}: You hit KooperJack with {player_hand}! You Win!")
         else:
             games[ctx.author.id] = (deck, player_hand, dealer_hand)
             await ctx.send('-# ' + str(member) + f": Your hand is now {player_hand}")
@@ -837,9 +1154,16 @@ async def _stay(ctx):
             await ctx.send('https://ssl-forum-files.fobby.net/forum_attachments/0050/0985/KooperJack3.gif')
             await ctx.send('-# ' + str(member) + f": You win with {player_hand}!")
         else:
-            result = False
-            wahooboard.update_score(ctx.author, result)
-            await ctx.send('-# ' + str(member) + f": Luigi has {dealer_hand}. It's a tie! The house wins anyway! TOO BAD")
+            inv_list = wahooboard.get_full_user_inventory(ctx.author)
+            if "Gambling Knife" in inv_list:
+                result = True
+                wahooboard.update_score(ctx.author, result)
+                await ctx.send('https://ssl-forum-files.fobby.net/forum_attachments/0050/0985/KooperJack3.gif')
+                await ctx.send('-# ' + str(member) + f": Luigi has {dealer_hand}. It's a tie! But you have a knife! You Win!")
+            else:
+                result = False
+                wahooboard.update_score(ctx.author, result)
+                await ctx.send('-# ' + str(member) + f": Luigi has {dealer_hand}. It's a tie! The house wins anyway! TOO BAD")
 
 @bot.command(name='coins')
 async def _coins(ctx): 
@@ -848,7 +1172,7 @@ async def _coins(ctx):
         #display your current coin count, or give out mercy coins if you have none
         (user_coins, list_owing, list_owed) = wahooboard.update_coins(ctx.author)
         if user_coins > 0:
-            await ctx.send('-# ' + str(member) + ': Welcome to KooperBank! You have ' + str(user_coins) + ' Mario Coins!')
+            await ctx.send(f"-# {member}: Welcome to KooperBank! You have {user_coins:,} Mario Coins!")
             if list_owing: #check if the list is empty
                 total_amount_owing = 0
                 owing_string = ''
@@ -856,7 +1180,7 @@ async def _coins(ctx):
                     for key in i:
                         if key == 'total':
                             total_amount_owing += i[key]
-                    owing_string += f"- You owe {i["username"]} {i["total"]} Mario Coins\n"
+                    owing_string += f"- You owe {i["username"]} {i["total"]:,} Mario Coins\n"
                 await ctx.send(f'-# {member}: **Owing:**\n{owing_string}')
             if list_owed:
                 #loop through all entries and get total amount owed
@@ -866,9 +1190,9 @@ async def _coins(ctx):
                     for key in i:
                         if key == 'total':
                             total_amount_owed += i[key]
-                    owed_string += f"- {i["username"]} owes you {i["total"]} Mario Coins\n"
+                    owed_string += f"- {i["username"]} owes you {i["total"]:,} Mario Coins\n"
                 await ctx.send(f'-# {member}: **Owed:**\n{owed_string}')
-            await ctx.send(f'-# {member}: In total you owe {total_amount_owing} Mario Coins, and are owed {total_amount_owed} Mario Coins!')
+            await ctx.send(f'-# {member}: In total you owe {total_amount_owing:,} Mario Coins, and are owed {total_amount_owed:,} Mario Coins!')
         else:
             await ctx.send('-# ' + str(member) + ': Uh oh! You have ' + str(user_coins) + ' Mario Coins!')
             await ctx.send('-# ' + str(member) + ': Please appeal to Kooper for mercy by typing \"Oh boy do I love Kooper\", and he may take pity on you!')
@@ -910,11 +1234,11 @@ async def _LuigiFreedom(ctx):
 async def _leaderboard(ctx):
     if ctx.channel.name == 'mario-hell':
         #search the thing for the top 10
-        high_score_list = wahooboard.high_score(ctx.author)
+        high_score_list = wahooboard.high_score()
         counter = 1
         msg_value1 = ''
         for k, v in high_score_list:
-            msg_value1 += '#' + str(counter) + '. ' + str(k) + ': ' + str(v) + ' Mario Coins \n'
+            msg_value1 += f"#{counter}. {k}: {v:,} Mario Coins \n"
             counter += 1
             if counter >= 11:
                 break
@@ -932,18 +1256,27 @@ async def _loan(ctx, user:discord.Member, amount, interest_rate = random.randran
     #update your coins
     if ctx.channel.name == 'mario-hell':
         (user_coins, list_owed, list_owing) = wahooboard.update_coins(ctx.author)
+
+        if interest_rate < 0 or interest_rate > 99:
+            await ctx.send('-# Quit tryna break my bank!')
+            return
+
         try:
             interest_int = int(interest_rate)
         except ValueError:
             await ctx.send('-# Hey, we only work with numbers here!')
             return
         interest_rate = int(interest_rate) / 100
+
         try:
             amount_int = int(amount)
         except ValueError:
             await ctx.send('-# Hey, we only work with numbers here!')
             return
         
+        
+
+
         if user == ctx.author:
             msg = '-# Good job, you trired to give coins to yourself. I hope you feel productive.'
             await ctx.send(msg)
@@ -954,9 +1287,9 @@ async def _loan(ctx, user:discord.Member, amount, interest_rate = random.randran
             return
 
         if amount_int > user_coins:
-            msg = f'-# {ctx.author.global_id}: You do not have enough Mario Coins to issue this loan!'
+            msg = f"-# {ctx.author.global_name}: You do not have enough Mario Coins to issue this loan!"
         elif amount_int <= 0:
-            msg = f'-# {ctx.author.global_id}: Don\'t try getting smart with me buddy! Pick a better number'
+            msg = f"-# {ctx.author.global_name}: Don\'t try getting smart with me buddy! Pick a better number!"
         else:
             await ctx.send(f"-# {user.mention}: Do you accept this loan? Respond \"Yes\" or \"No\" in 10 seconds or forfeit this opportunity.")
 
@@ -973,7 +1306,7 @@ async def _loan(ctx, user:discord.Member, amount, interest_rate = random.randran
                 return
 
             wahooboard.loan_coins(ctx.author, user, amount_int, interest_rate, ctx.message.created_at)
-            msg = f'-# You have loaned {user.mention}: {amount_int} Mario Coins at {interest_rate}% interest! Be sure to pay it back!' 
+            msg = f'-# You have loaned {user.mention}: {amount_int:,} Mario Coins at {interest_rate*100}% interest! Be sure to pay it back!' 
 
         await ctx.send(msg)
 
@@ -991,10 +1324,10 @@ async def _collect(ctx, user:discord.Member):
             if timecheck:
                 if user_coins2 < list_owing[index]['total']:
                     #TODO: offer user to pay what they can, at an increased intrest rate on the balance left of 10%
-                    msg = f"-# {user.global_name} **lacks the proper funds** to pay {list_owing[index]['total']} Mario Coins to {ctx.author.global_name}!"
+                    msg = f"-# {user.global_name} **lacks the proper funds** to pay {list_owing[index]['total']:,} Mario Coins to {ctx.author.global_name}!"
                 else:
                     wahooboard.payoff_loan(ctx.author, user, list_owing[index]['total'])
-                    msg = f"-# {user.global_name}'s account has been debited {list_owing[index]['total']} Mario Coins to {ctx.author.global_name}!"
+                    msg = f"-# {user.global_name}'s account has been debited {list_owing[index]['total']:,} Mario Coins to {ctx.author.global_name}!"
             else:
                 #strftime doesn't work because time_remaining is a datetime.timedelta, not datetime.datetime, have to make some kind of custom function
                 msg = f'-# {ctx.author.global_name}: Not so fast! You must wait at least {strfdelta(time_remaining, "{hours} hours, {minutes} minutes, and {seconds} more seconds")} before collecting!'
@@ -1012,7 +1345,7 @@ async def _payoff(ctx, user:discord.Member):
         if debtfound: #check if ctx.author has any debts with the user
             if user_coins >= list_owing[index]['total']: #check if ctx.author has enough money to pay it off
                 wahooboard.payoff_loan(user, ctx.author, list_owing[index]['total'])
-                msg = f"-# {ctx.author.global_name}: Your account has been debited {list_owing[index]['total']} Mario Coins to {user.global_name}.\n Thank you for using KooperBank!"
+                msg = f"-# {ctx.author.global_name}: Your account has been debited {list_owing[index]['total']:,} Mario Coins to {user.global_name}.\n Thank you for using KooperBank!"
             else:
                 msg = f"-# {ctx.author.global_name}: You **lack the proper funds** to pay off your debt to {user.global_name}! Oh no!"
         else:
@@ -1024,22 +1357,91 @@ async def _loaninfo(ctx):
     msg = "-# Want to loan out a few Mario Coins to a friend? Look no further! \n- Use `!loan \"@user\" \"# of coins\"` to offer a loan! \n- When you want to collect simply use `!collect \"@user\"` \n- When you want to payoff your loan, use `!payoff \"@user\"`"
     await ctx.send(msg)
 
+@bot.command(name='shop')
 async def _shop(ctx):
     if ctx.channel.name == 'mario-hell':
         msg_value1 = ''
         msg_value2 = ''
-        for k, v in item_list:
-            msg_value1 += f'{k}\n'
-            msg_value2 += f'{v}\n'
+        dynamic_item_list = wahooboard.get_shop_items()
+        for item in dynamic_item_list:
+            msg_value1 += f'#{item['item number']}: {item['name']}\n'
+            msg_value2 += f'{item['price']:,}\n'
 
         msg = discord.Embed(
-            title = "Kail's Ye Olde Hell Shoppe",
+            title = "Kail's Ye Olde GrillShoppe",
+            description= "Use `!buy \"#\"` to purchase an item!",
             colour = discord.Colour.dark_red()
         )
         msg.add_field(name='Shoppe Selection:', value=msg_value1, inline=True)
-        msg.add_field(name='Price', value=msg_value2, inline=True)
+        msg.add_field(name='Price (Mario Coins)', value=msg_value2, inline=True)
         msg.set_author(name='Kail', icon_url='https://cdn.discordapp.com/avatars/132899865062670336/b7fbaac1c733480b5fd94084b6e028e8.webp')
         await ctx.send(embed = msg)
+
+@bot.command(name='buy')
+async def _buy(ctx, item_number: int):
+    if ctx.channel.name == 'mario-hell':
+        wahooboard.initialize_values(ctx.author)
+        dynamic_item_list = wahooboard.get_shop_items()
+        #check to see if the item is available for purchase
+        if item_number > len(dynamic_item_list) or item_number <= 0:
+            msg = f"-# {ctx.author.global_name}: Sorry, I can't find the item you're looking for!"
+        else:
+            item_number -= 1 #because lists are 0 indexed but my keys are not
+            has_item = wahooboard.check_inventory(ctx.author, item_number) #bool
+            if has_item:
+                msg = f"-# {ctx.author.global_name}: You have already bought this item!"
+            else:
+                #special case for special items
+                if dynamic_item_list[item_number]["bought"]:
+                    msg = f"-# {ctx.author.global_name}: Looks like someone already unlocked this item! Good for them!"
+                else:
+                    (user_coins, list_owing, list_owed) = wahooboard.update_coins(ctx.author)
+                    if user_coins >= dynamic_item_list[item_number]["price"]:
+                        #call a function to handle coins and put the item in your inventory, unless it is a special case item
+                        #in which case flip it's bought variable at the end of the dict
+                        wahooboard.procure_item(ctx.author, item_number)
+                        msg = f"-# {ctx.author.global_name}: You bought `{dynamic_item_list[item_number]["name"]}`! Please enjoy responsibly!"
+                    else:
+                        msg = f"-# {ctx.author.global_name}: You cannot afford this item yet!"
+
+        await ctx.send(msg)
+
+@bot.command(name='inv')
+async def _inv(ctx):
+    if ctx.channel.name == 'mario-hell':
+        wahooboard.initialize_values(ctx.author)
+        inv_list = wahooboard.get_full_user_inventory(ctx.author)
+        if inv_list: #if the list is not empty
+            sub_msg = ''
+            for item in inv_list:
+                sub_msg += f"- `{item}`\n"
+            msg = f"-# {ctx.author.global_name}: Your inventory contains... \n{sub_msg}"
+        else:
+            msg = f"-# {ctx.author.global_name}: You have nothing in your inventory!"
+        await ctx.send(msg)
+        
+@bot.command(name='freeBoots')
+async def _freeBoots(ctx):
+    if ctx.channel.name == 'mario-hell':
+        dynamic_item_list = wahooboard.get_shop_items()
+        if dynamic_item_list[10]["bought"]:
+            response = "# BOOTS HAS BEEN FREED"
+            for x in range (0, 12):  
+                await ctx.send(response)
+                sleep(0.2)
+            await ctx.send('# BE FREE \n' + 'https://ssl-forum-files.fobby.net/forum_attachments/0050/0973/Bowser_Revolution.png')
+            boots = await guild.fetch_member(161000873680437248)
+            await boots.remove_roles(role1)
+            await boots.remove_roles(role2)
+            await boots.remove_roles(role4)
+            await boots.add_roles(role3)
+            await boots.add_roles(role5)
+        else:
+          msg = f"-# {ctx.author.global_name}: You have not unlocked this command yet!"
+          await ctx.send(msg)
+
+
+        
 
 
 bot.run(TOKEN)
